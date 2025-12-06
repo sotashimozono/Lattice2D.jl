@@ -1,18 +1,19 @@
 # TODO : helper functions for Lattice2D
 """
     calc_reciprocal_vectors(basis)
-基底ベクトルから逆格子ベクトルを計算する関数。
+Calculate reciprocal lattice vectors from the given basis vectors.
 """
 function calc_reciprocal_vectors(basis)
     MatA = hcat(basis...)
     MatB = 2π * inv(MatA')
     return [MatB[:, i] for i in 1:size(MatB, 2)]
 end
+export calc_reciprocal_vectors
 """
     check_bipartite_bfs(N, neighbors)
-格子が二部グラフかどうかをBFSでチェックする関数。
+check whether the given lattice is bipartite using BFS.
 """
-function check_bipartite_bfs(N, neighbors)
+function check_bipartite_bfs(N::Int, neighbors::Vector{Vector{Int}})
     colors = zeros(Int, N)
     # 0: unvisited, 1: colorA, -1: colorB
     # is_bipartite = true
@@ -35,6 +36,8 @@ function check_bipartite_bfs(N, neighbors)
     end
     return true
 end
+export check_bipartite_bfs
+
 
 @inline function _coord_to_index(x::Int, y::Int, s::Int, Lx::Int, n_sub::Int)
     # (Cell Index) * n_sub + s
@@ -43,7 +46,8 @@ end
 end
 """
     build_lattice(Topology::Type{<:AbstractTopology}, Lx::Int, Ly::Int; boundary::AbstractBoundaryCondition=PBC())
-指定されたトポロジーとサイズ、境界条件で格子を構築する関数。
+Construct a lattice with the specified topology, size, and boundary conditions.
+this function is available if unitcell information is defined.
 """
 function build_lattice(Topology::Type{<:AbstractTopology}, Lx::Int, Ly::Int; boundary::AbstractBoundaryCondition=PBC())
     # --- 1. Initialize Lattice Parameters ---
