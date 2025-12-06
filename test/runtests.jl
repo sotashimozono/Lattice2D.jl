@@ -22,13 +22,12 @@ const dirs = ["core", "lattices", "utils"]
         files = sort(filter(f -> startswith(f, "test_") && endswith(f, ".jl"), readdir(dirpath)))
         if isempty(files)
             println("  No test files found in $(dirpath).")
+            @test true
         else
             for f in files
                 filepath = joinpath(dirpath, f)
-                @time begin
-                    println("  Including $(filepath)")
-                    include(filepath)
-                end
+                println("  Including $(filepath)")
+                include(filepath)
             end
         end
     end
