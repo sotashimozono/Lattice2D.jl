@@ -1,22 +1,21 @@
 """
     AbstractLattice{D}
-格子の抽象型。Dは空間次元。
-ising model などの格子モデルはこの型を継承して実装する。
+abstract type for lattices in D dimensions.
 """
 abstract type AbstractLattice{D} end
 """
     AbstractLatticeConnection
-格子の接続（辺、ボンド）を表す抽象型。
+abstract type for lattice connections (edges, bonds).
 """
 abstract type AbstractLatticeConnection end
 
 """
     Bond
-格子の辺を表す型。
-- `src::Int`: 辺の始点サイトのインデックス
-- `dst::Int`: 辺の終点サイトのインデックス
-- `type::Int`: 辺の種類（異なる結合定数を持つ辺を区別するため）
-- `vector::Vector{Float64}`: 辺のベクトル表現
+struct for a bond (edge) in the lattice.
+- `src::Int`: start site index
+- `dst::Int`: destination site index
+- `type::Int`: type of the bond for categorization
+- `vector::Vector{Float64}`: expresses the bond vector from src to dst
 """
 struct Bond <: AbstractLatticeConnection
     src::Int
@@ -28,11 +27,11 @@ export Bond
 
 """
     Connection
-単位胞内または単位胞間の接続ルール。
-- `src_sub`: 始点のサブ格子インデックス (1, 2, ...)
-- `dst_sub`: 終点のサブ格子インデックス
-- `dx`, `dy`: 終点がどの相対セルにあるか (0,0 なら同じ単位胞内)
-- `type`: 結合の種類
+Connection rules within or between unit cells.
+- `src_sub`: sublattice index of the start point (1, 2, ...)
+- `dst_sub`: sublattice index of the end point
+- `dx`, `dy`: relative cell position of the end point (0,0 means within the same unit cell)
+- `type`: type of the connection
 """
 struct Connection <: AbstractLatticeConnection
     src_sub::Int
@@ -45,8 +44,8 @@ export Connection
 
 """
     UnitCell{D, T}
-格子の幾何学的定義データ。基本的に、この情報をもとに格子を構築する。
-`get_unit_cell(::Type{T})` 関数で各トポロジーに対応する単位胞データを取得する。
+Geometric definition data of the lattice. Basically, the lattice is constructed based on this information.
+The `get_unit_cell(::Type{T})` function retrieves the unit cell data corresponding to each topology.
 """
 struct UnitCell{D,T} <: AbstractLattice{D}
     basis::Vector{Vector{T}}
@@ -56,31 +55,27 @@ end
 export UnitCell
 """
     AbstractTopology
-格子のトポロジーの抽象型。
-- Square: 正方格子
-- Triangular: 三角格子
-- Honeycomb: ハニカム格子
-- Kagome: カゴメ格子
+Abstract type for lattice topologies.
 """
 abstract type AbstractTopology{D} <: AbstractLattice{D} end
 
 """
 Lattice2D{Topology<:AbstractTopology, T, B<:AbstractBoundaryCondition}
 2次元格子を表す型。
-- `Lx::Int`: x方向の格子サイズ
-- `Ly::Int`: y方向の格子サイズ
-- `N::Int`: サイト総数
-- `positions::Vector{Vector{T}}`: 各サイトの位置ベクトル
-- `nearest_neighbors::Vector{Vector{Int}}`: 各サイトの最近接サイトのインデックスリスト
-- `bonds::Vector{Bond}`: 格子の辺のリスト
-- `basis_vectors::Vector{Vector{T}}`: 格子の基底ベクトル
-- `reciprocal_vectors::Union{Vector{Vector{T}}, Nothing}`: 逆格子ベクトル
-- `sublattice_ids::Vector{Int}`: 各サイトのサブ格子ID
-- `is_bipartite::Bool`: 格子が二部グラフかどうか
-- `site_map::Union{Matrix{Int}, Nothing}`: 格子上のサイトインデックスのマッピング
-- `translation_x::Vector{Int}`: x方向の平行移動ベクトル
-- `translation_y::Vector{Int}`: y方向の平行移動ベクトル
-- `boundary::B`: 境界条件
+- `Lx::Int`: x direction lattice size
+- `Ly::Int`: y direction lattice size
+- `N::Int`: total number of sites
+- `positions::Vector{Vector{T}}`: position vectors of each site
+- `nearest_neighbors::Vector{Vector{Int}}`: nearest neighbor indices for each site
+- `bonds::Vector{Bond}`: list of bonds (edges) in the lattice
+- `basis_vectors::Vector{Vector{T}}`: lattice basis vectors
+- `reciprocal_vectors::Union{Vector{Vector{T}}, Nothing}`: reciprocal lattice vectors
+- `sublattice_ids::Vector{Int}`: sublattice IDs of each site
+- `is_bipartite::Bool`: whether the lattice is bipartite
+- `site_map::Union{Matrix{Int}, Nothing}`: mapping of site indices on the lattice
+- `translation_x::Vector{Int}`: x direction translation vector
+- `translation_y::Vector{Int}`: y direction translation vector
+- `boundary::B`: boundary condition
 """
 struct Lattice2D{Topology<:AbstractTopology,T,B<:AbstractBoundaryCondition} <: AbstractLattice{2}
     Lx::Int
