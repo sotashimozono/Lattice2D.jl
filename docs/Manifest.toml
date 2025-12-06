@@ -393,7 +393,7 @@ version = "0.16.10"
     SymEngine = "123dc426-2d89-5057-bbad-38513e3affd8"
     tectonic_jll = "d7dd28d6-a5e6-559c-9131-7eb760cdacc5"
 
-[[deps.Lattices]]
+[[deps.Lattice2D]]
 deps = ["LinearAlgebra", "Plots", "Test"]
 path = ".."
 uuid = "e8031020-b7ff-4f1d-bee4-f79aea4cf140"

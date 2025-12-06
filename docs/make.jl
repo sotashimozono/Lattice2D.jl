@@ -7,6 +7,7 @@ makedocs(
     modules  = [Lattice2D],
     pages    = [
         "Home" => "index.md"
+        "Gallery" => "gallery.md"
     ]
 )
 

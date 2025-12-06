@@ -1,11 +1,18 @@
-# Lattices.jl
+# Lattice2D.jl
 
-Here is a implementation of DynamicalModels including Lorenz eq., van der Pol eq., logistic eq. etc...
+A Julia package for constructing and visualizing 2D lattices for quantum many-body physics simulations.
+
+## Installation
+
+```julia
+using Pkg
+Pkg.add("Lattice2D")
+```
 
 ## Models
 
 The models implemented in this module is below.
 
 ```@autodocs
-Modules = [Lattices]
+Modules = [Lattice2D]
 ```

@@ -9,5 +9,4 @@
 abstract type AbstractBoundaryCondition end
 struct PBC <: AbstractBoundaryCondition end
 struct OBC <: AbstractBoundaryCondition end
-struct SSD <: AbstractBoundaryCondition end
-export PBC, OBC, SSD
+export PBC, OBC
