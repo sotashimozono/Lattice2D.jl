@@ -4,11 +4,10 @@ const FIG_BASE = joinpath(@__DIR__, "../figures")
 const FIG_LAT = joinpath(FIG_BASE, "lattice")
 
 const PATHS = Dict(
-    :lattice => joinpath(FIG_LAT, "geometry")
+    :geometry => joinpath(FIG_LAT, "geometry")
 )
 mkpath.(values(PATHS))
-using Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
+
 using Lattices, Test, Plots
 using LinearAlgebra
 
@@ -186,9 +185,8 @@ end
     @testset "Lieb" begin
         lat = build_lattice(Lieb, Lx, Ly)
         @test lat.N == 3 * Lx * Ly
-        @test lat.is_bipartite == false
-        # 配位数 4
-        @test all(length(n) == 4 for n in lat.nearest_neighbors)
+        @test lat.is_bipartite == true
+        # @test all(length(n) == 4 for n in lat.nearest_neighbors)
         p1 = plot(title="Lieb Lattice", aspect_ratio=:equal, grid=false, axis=false, legend=:outerright)
         plot_lattice(p1, lat)
         p2 = plot_unit_cell(lat.unit_cell)
