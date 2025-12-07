@@ -2,7 +2,7 @@
 
 julia_version = "1.12.2"
 manifest_format = "2.0"
-project_hash = "e0fb78634a80083db14f3cee1c88127fca9d5615"
+project_hash = "43b81511141646dc9e6abbebc9b287f0516115e6"
 
 [[deps.AliasTables]]
 deps = ["PtrArrays", "Random"]
@@ -354,7 +354,7 @@ version = "0.16.10"
     tectonic_jll = "d7dd28d6-a5e6-559c-9131-7eb760cdacc5"
 
 [[deps.Lattices]]
-deps = ["Colors", "LinearAlgebra", "Plots"]
+deps = ["Colors", "LinearAlgebra", "Plots", "SparseArrays"]
 path = "."
 uuid = "e8031020-b7ff-4f1d-bee4-f79aea4cf140"
 version = "0.1.0"
