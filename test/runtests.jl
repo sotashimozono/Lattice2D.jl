@@ -10,7 +10,7 @@ const PATHS = Dict(
 )
 mkpath.(values(PATHS))
 
-const dirs = ["core", "lattices", "utils"]
+const dirs = ["core", "lattices", "quasicrystals", "utils"]
 
 @testset "tests" begin
     test_args = copy(ARGS)
