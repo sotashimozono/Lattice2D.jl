@@ -1,9 +1,10 @@
 module Lattice2D
 
-include("boundarycondition.jl")
-include("abstractlattices.jl")
-include("unitcells.jl")
-include("constructor.jl")
-include("iterator.jl")
+include("core/boundarycondition.jl")
+include("core/index_methods.jl")
+include("core/abstractlattices.jl")
+include("core/unitcells.jl")
+include("core/constructor.jl")
+include("utils/iterator.jl")
 
 end

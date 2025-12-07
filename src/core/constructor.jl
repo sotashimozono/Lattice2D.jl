@@ -1,4 +1,4 @@
-# TODO : helper functions for Lattice2D
+# TODO : helper functions for Lattice
 """
     calc_reciprocal_vectors(basis)
 Calculate reciprocal lattice vectors from the given basis vectors.
@@ -38,18 +38,26 @@ function check_bipartite_bfs(N::Int, neighbors::Vector{Vector{Int}})
 end
 export check_bipartite_bfs
 
-
-@inline function _coord_to_index(x::Int, y::Int, s::Int, Lx::Int, n_sub::Int)
-    # (Cell Index) * n_sub + s
-    # Cell Index = (x-1) + (y-1)*Lx  [Assuming x iterates first, then y]
-    return ((x - 1) + (y - 1) * Lx) * n_sub + s
+"""
+    _coord_to_index(lat::Lattice, x::Int, y::Int, s::Int)
+this function converts lattice coordinates to a linear index based on the lattice's indexing method.
+- ColMajorIndexing
+- RowMajorIndexing
+- SnakeIndexing
+are available indexing methods.
+"""
+function _coord_to_index(lat::Lattice, x::Int, y::Int, s::Int)
+    n_sub = length(lat.unit_cell.sublattice_positions)
+    return _coord_to_index(lat.index_method, x, y, s, lat.Lx, lat.Ly, n_sub)
 end
+
 """
     build_lattice(Topology::Type{<:AbstractTopology}, Lx::Int, Ly::Int; boundary::AbstractBoundaryCondition=PBC())
 Construct a lattice with the specified topology, size, and boundary conditions.
 this function is available if unitcell information is defined.
 """
-function build_lattice(Topology::Type{<:AbstractTopology}, Lx::Int, Ly::Int; boundary::AbstractBoundaryCondition=PBC())
+function build_lattice(Topology::Type{<:AbstractTopology}, Lx::Int, Ly::Int; 
+    boundary::AbstractBoundaryCondition=PBC(), index_method::AbstractIndexing=RowMajorIndexing())
     # --- 1. Initialize Lattice Parameters ---
     uc = get_unit_cell(Topology)
     n_sub = length(uc.sublattice_positions)
@@ -68,15 +76,17 @@ function build_lattice(Topology::Type{<:AbstractTopology}, Lx::Int, Ly::Int; bou
     a1, a2 = uc.basis[1], uc.basis[2]
     idx = 1
     for y in 1:Ly
-        # y_offset = (y-1) * Lx * n_sub # 計算で出す場合
         for x in 1:Lx
             # site_map には「そのセルの最初のサブ格子(s=1)のID」を保存
-            site_map[x, y] = idx
+            base_id = _coord_to_index(index_method, x, y, 1, Lx, Ly, n_sub)
+            site_map[x, y] = base_id
             cell_origin = (x - 1) * a1 + (y - 1) * a2
             for s in 1:n_sub
-                positions[idx] = cell_origin + uc.sublattice_positions[s]
-                sublattice_ids[idx] = s
-                idx += 1
+                i = base_id + (s - 1)
+                
+                # positions, sublattice_ids の設定
+                positions[i] = cell_origin + uc.sublattice_positions[s]
+                sublattice_ids[i] = s
             end
         end
     end
@@ -118,22 +128,10 @@ function build_lattice(Topology::Type{<:AbstractTopology}, Lx::Int, Ly::Int; bou
     # --- 3. Finalize ---
     recip_vecs = calc_reciprocal_vectors(uc.basis)
     is_bipartite = check_bipartite_bfs(N, nn_table)
-    return Lattice2D{Topology,Float64,typeof(boundary)}(
+    return Lattice{Topology,Float64,typeof(boundary), typeof(index_method)}(
         Lx, Ly, N, positions, nn_table, bonds,
         uc.basis, recip_vecs, sublattice_ids, is_bipartite,
-        site_map, boundary
+        site_map, boundary, index_method
     )
 end
 export build_lattice
-
-function Base.getproperty(lat::Lattice2D{Topology}, sym::Symbol) where {Topology}
-    if sym === :unit_cell
-        return get_unit_cell(Topology)
-    else
-        return getfield(lat, sym)
-    end
-end
-function Base.propertynames(lat::Lattice2D)
-    return (fieldnames(Lattice2D)..., :unit_cell)
-end
-export getproperty, propertynames

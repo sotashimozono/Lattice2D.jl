@@ -60,8 +60,8 @@ Abstract type for lattice topologies.
 abstract type AbstractTopology{D} <: AbstractLattice{D} end
 
 """
-Lattice2D{Topology<:AbstractTopology, T, B<:AbstractBoundaryCondition}
-2次元格子を表す型。
+Lattice{Topology<:AbstractTopology, T, B<:AbstractBoundaryCondition, I<:AbstractIndexing}
+It mainly represents 2-dimiensional lattice, but it can be used as 1-dimensional lattice as well.
 - `Lx::Int`: x direction lattice size
 - `Ly::Int`: y direction lattice size
 - `N::Int`: total number of sites
@@ -76,8 +76,9 @@ Lattice2D{Topology<:AbstractTopology, T, B<:AbstractBoundaryCondition}
 - `translation_x::Vector{Int}`: x direction translation vector
 - `translation_y::Vector{Int}`: y direction translation vector
 - `boundary::B`: boundary condition
+- `index_method::I`: indexing method
 """
-struct Lattice2D{Topology<:AbstractTopology,T,B<:AbstractBoundaryCondition} <: AbstractLattice{2}
+struct Lattice{Topology<:AbstractTopology,T,B<:AbstractBoundaryCondition, I<:AbstractIndexing} <: AbstractLattice{2}
     Lx::Int
     Ly::Int
     N::Int
@@ -92,6 +93,7 @@ struct Lattice2D{Topology<:AbstractTopology,T,B<:AbstractBoundaryCondition} <: A
     is_bipartite::Bool
     site_map::Union{Matrix{Int},Nothing}
     boundary::B
+    index_method::I
 end
-export Lattice2D
+export Lattice
 

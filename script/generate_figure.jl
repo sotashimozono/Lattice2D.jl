@@ -10,7 +10,7 @@ using LinearAlgebra
 const OUT_DIR = joinpath(pkgdir(Lattice2D), "docs", "src", "assets", "figures", "lattice")
 mkpath(OUT_DIR)
 
-function plot_lattice_structure(lat::Lattice2D, title_str)
+function plot_lattice_structure(lat::Lattice, title_str)
     p = plot(title=title_str, aspect_ratio=:equal, grid=false, axis=false, legend=:outertopright)
     
     threshold = 1.5 * maximum(norm.(lat.unit_cell.basis)) 
