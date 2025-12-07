@@ -14,5 +14,6 @@ include("utils/iterator.jl")
 include("quasicrystals/fibonacci.jl")
 include("quasicrystals/penrose.jl")
 include("quasicrystals/ammann_beenker.jl")
+include("quasicrystals/visualization.jl")
 
 end
