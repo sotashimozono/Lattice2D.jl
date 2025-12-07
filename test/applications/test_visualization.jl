@@ -102,16 +102,19 @@ using Lattice2D, Test, Plots, Random
     
     @testset "Animation" begin
         # Test that animation function exists and can be called
-        # We just test it doesn't throw an error when creating the file
         lat = build_lattice(Square, 10, 10)
         rw = random_walk(lat)
         walk!(rw, 20, rng=rng)
         
-        # Create the animation
-        animate_random_walk(rw, "/tmp/test_walk.gif", fps=10)
+        # Create the animation in temp directory
+        tmpfile = joinpath(mktempdir(), "test_walk.gif")
+        animate_random_walk(rw, tmpfile, fps=10)
         
         # Check the file was created
-        @test isfile("/tmp/test_walk.gif")
+        @test isfile(tmpfile)
+        
+        # Cleanup
+        rm(tmpfile, force=true)
     end
     
     @testset "Different Lattice Types" begin

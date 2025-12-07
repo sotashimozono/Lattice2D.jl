@@ -342,15 +342,16 @@ end
 export degree_sequence
 
 """
-    prune_leaves!(tree::SpanningTree)
+    _prune_leaves!(tree::SpanningTree)
 
-Remove all leaf vertices from the tree (modifies tree in place).
+Internal function: Remove all leaf vertices from the tree (modifies tree in place).
 
 # Returns
 - `Int`: Number of leaves removed
 
+**Note**: This is an internal function and may change in future versions.
 """
-function prune_leaves!(tree::SpanningTree)
+function _prune_leaves!(tree::SpanningTree)
     leaves = leaf_vertices(tree)
     
     for leaf in leaves
@@ -427,6 +428,8 @@ function critical_path(tree::SpanningTree)
     lca_idx = findfirst(v -> v in set_v1, path_v2)
     
     if lca_idx === nothing
+        # This should never happen in a connected tree
+        @warn "Could not find LCA in critical_path - tree may be disconnected"
         return Int[], 0
     end
     
