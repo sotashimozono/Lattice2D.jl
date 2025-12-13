@@ -11,7 +11,7 @@
 
 This package provides two dimensional lattices. If you know unit cell information (basic vectors, connection), you can construct arbitrary lattices.
 
-Available lattices by defaults are ...
+Available lattices by defaults are:
 
 - Square lattice
 - Triangular lattice
@@ -19,6 +19,18 @@ Available lattices by defaults are ...
 - Kagome lattice
 - Lieb lattice
 - Shastry-Sutherland lattice
+
+### Application Examples
+
+The package now includes 5 comprehensive application examples:
+
+1. **Percolation** - Bond and site percolation with cluster analysis
+2. **Random Walks** - Standard and self-avoiding random walks with statistics
+3. **Diffusion Limited Aggregation (DLA)** - Fractal growth simulations
+4. **Spanning Trees** - Uniform random spanning tree generation (Wilson's algorithm)
+5. **Visualization** - Enhanced plotting functions for all applications
+
+See [Applications Documentation](docs/src/applications.md) for detailed usage.
 
 ## Installation
 
