@@ -136,6 +136,7 @@ function build_lattice(Topology::Type{<:AbstractTopology}, Lx::Int, Ly::Int;
 end
 export build_lattice
 
+Lattice(Topology::Type{<:AbstractTopology}, Lx::Int, Ly::Int; kwargs...) = build_lattice(Topology::Type{<:AbstractTopology}, Lx::Int, Ly::Int; kwargs...)
 """
     get_site_index(lat::Lattice, x::Int, y::Int, s::Int=1)
 
