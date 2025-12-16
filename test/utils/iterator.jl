@@ -15,11 +15,11 @@ using Lattices
     @testset "Neighbors Iterator" begin
         i = 1
         nbrs = neighbors(lat, i)
-        
+
         @test nbrs isa AbstractVector{Int}
-        
+
         @test nbrs == lat.nearest_neighbors[i]
-        
+
         count = 0
         for n in neighbors(lat, i)
             count += 1

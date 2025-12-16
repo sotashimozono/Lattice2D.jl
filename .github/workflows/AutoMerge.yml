@@ -1,5 +1,4 @@
-name: AutoMerge
-
+name: Auto Merge
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -7,17 +6,15 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  checks: read
 
 jobs:
-  auto-merge:
+  automerge:
     runs-on: ubuntu-latest
-    if: >
-      github.actor == 'dependabot[bot]' ||
-      github.actor == 'CompatHelper[bot]' ||
-      github.actor == 'github-actions[bot]'
+    if: github.actor == 'github-actions[bot]' || github.actor == 'CompatHelper'
     steps:
       - name: Enable auto-merge
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

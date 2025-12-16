@@ -1,6 +1,6 @@
 name = "Lattice2D"
 uuid = "e8031020-b7ff-4f1d-bee4-f79aea4cf140"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["souta shimozono"]
 
 [deps]

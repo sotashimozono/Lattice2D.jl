@@ -13,7 +13,7 @@
     a2 = [0.5, sqrt(3)/2]
     basis_tri = [a1, a2]
     recip_tri = calc_reciprocal_vectors(basis_tri)
-    
+
     b1, b2 = recip_tri
     # Definition Check: a_i ⋅ b_j = 2π δ_ij
     @test dot(a1, b1) ≈ 2π

@@ -30,17 +30,17 @@
         Lx, Ly = 4, 4
         @testset "periodic boundary condition" begin
             lat_pbc = build_lattice(Square, Lx, Ly; boundary=PBC())
-            
+
             # each site should have 4 neighbors in PBC
             degrees = length.(lat_pbc.nearest_neighbors)
             @test all(d -> d == 4, degrees)
-            
+
             # Check specific connections: is the left neighbor of (1,1) connected to (Lx,1)?
             # Use site_map[x, y] to get IDs for verification
             id_1_1 = lat_pbc.site_map[1, 1]
             id_L_1 = lat_pbc.site_map[Lx, 1] # left edge
             id_1_L = lat_pbc.site_map[1, Ly] # bottom edge
-            
+
             # Check if the neighbors contain the corresponding IDs
             @test id_L_1 in lat_pbc.nearest_neighbors[id_1_1]
             @test id_1_L in lat_pbc.nearest_neighbors[id_1_1]
@@ -50,15 +50,15 @@
         end
         @testset "open boundary condition" begin
             lat_obc = build_lattice(Square, Lx, Ly; boundary=OBC())
-            
+
             # Corner: coordination number 2
             corner_id = lat_obc.site_map[1, 1]
             @test length(lat_obc.nearest_neighbors[corner_id]) == 2
-            
+
             # Edge: coordination number 3 (1 < x < Lx, y=1)
             edge_id = lat_obc.site_map[2, 1]
             @test length(lat_obc.nearest_neighbors[edge_id]) == 3
-            
+
             # Bulk: coordination number 4
             bulk_id = lat_obc.site_map[2, 2]
             @test length(lat_obc.nearest_neighbors[bulk_id]) == 4
@@ -68,11 +68,11 @@
     @testset "Index Consistency" begin
         Lx, Ly = 4, 3
         lat = build_lattice(Square, Lx, Ly)
-        
+
         for x in 1:Lx, y in 1:Ly
             expected_idx = (x - 1) + (y - 1) * Lx + 1
             @test lat.site_map[x, y] == expected_idx
-            
+
             pos = lat.positions[expected_idx]
             expected_pos = (x-1)*lat.basis_vectors[1] + (y-1)*lat.basis_vectors[2]
             @test pos ≈ expected_pos

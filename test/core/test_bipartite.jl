@@ -5,7 +5,7 @@
     neighbors_line = [
         [2],    # 1 connects to 2
         [1, 3], # 2 connects to 1, 3
-        [2]     # 3 connects to 2
+        [2],     # 3 connects to 2
     ]
     @test check_bipartite_bfs(3, neighbors_line) == true
 
@@ -16,15 +16,17 @@
     neighbors_tri = [
         [2, 3], # 1
         [1, 3], # 2
-        [1, 2]  # 3
+        [1, 2],  # 3
     ]
     @test check_bipartite_bfs(3, neighbors_tri) == false
 
     # Case 3: Disconnected Graph (Two separate lines)
     # 1-2, 3-4 (Bipartite)
     neighbors_dis = [
-        [2], [1], # Component 1
-        [4], [3]  # Component 2
+        [2],
+        [1], # Component 1
+        [4],
+        [3],  # Component 2
     ]
     @test check_bipartite_bfs(4, neighbors_dis) == true
 end

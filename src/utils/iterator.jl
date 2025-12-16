@@ -13,7 +13,9 @@ function Base.iterate(lat::Lattice, state=1)
     end
 end
 
-function Base.getproperty(lat::Lattice{Topology, Type, Boundary}, sym::Symbol) where {Topology, Type, Boundary}
+function Base.getproperty(
+    lat::Lattice{Topology,Type,Boundary}, sym::Symbol
+) where {Topology,Type,Boundary}
     if sym === :unit_cell
         return get_unit_cell(Topology)
     elseif sym === :Topology || sym === :topology
@@ -34,7 +36,8 @@ function Base.show(io::IO, lat::Lattice)
     B_str = string(lat.boundary)
     str = lat.is_bipartite ? "bipartite" : "not bipartite"
     # 単一の print(io, ...) で全体を出力
-    print(io, 
+    print(
+        io,
         "\n" *
         "Lattice Shape: $T_str\n" *
         "    Lattice Size: $(lat.Lx) x $(lat.Ly)\n" *
@@ -47,6 +50,6 @@ function Base.show(io::IO, lat::Lattice)
         "    Is Bipartite: $(lat.is_bipartite)\n" *
         "Geometry:\n" *
         "    basis vector: $(lat.basis_vectors)\n" *
-        "    reciprocal vector: $(lat.reciprocal_vectors)\n"
+        "    reciprocal vector: $(lat.reciprocal_vectors)\n",
     )
 end

@@ -1,0 +1,21 @@
+{
+  "name": "Julia Environment",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/julialang/devcontainer-features/julia:1": {
+      "channel": "release",
+      "version": "latest"
+    }
+  },
+  "mounts": [
+    "source=julia-pkg-cache,target=/home/vscode/.julia,type=volume"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "julialang.language-julia"
+      ]
+    }
+  },
+  "postCreateCommand": "julia --project=. -e 'using Pkg; Pkg.instantiate()'"
+}

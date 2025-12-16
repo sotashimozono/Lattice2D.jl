@@ -42,7 +42,7 @@
             # each site should have 4 neighbors in PBC
             degrees = length.(lat_pbc.nearest_neighbors)
             @test all(d -> d == 4, degrees)
-            
+
             id_A = lat_pbc.site_map[1, 1]
             id_B = id_A + 1
             id_C = id_A + 2
@@ -55,7 +55,7 @@
         end
         @testset "open boundary condition" begin
             lat_obc = build_lattice(Kagome, Lx, Ly; boundary=OBC())
-            
+
             degrees = length.(lat_obc.nearest_neighbors)
             @test maximum(degrees) == 4
             @test minimum(degrees) >= 2
@@ -65,21 +65,21 @@
             @test length(lat_obc.nearest_neighbors[bulk_id]) <= 2
         end
     end
-@testset "Index Consistency" begin
+    @testset "Index Consistency" begin
         Lx, Ly = 3, 3
         n_sub = 3 # Kagome is 3
         lat = build_lattice(Kagome, Lx, Ly)
-        
+
         for x in 1:Lx, y in 1:Ly
             base_idx = lat.site_map[x, y]
-            
+
             # Base index calc check
             expected_base = ((x - 1) + (y - 1) * Lx) * n_sub + 1
             @test base_idx == expected_base
-            
+
             # Sublattice position check
             cell_origin = (x-1)*lat.basis_vectors[1] + (y-1)*lat.basis_vectors[2]
-            
+
             # Check A, B, C positions
             for s in 1:n_sub
                 pos = lat.positions[base_idx + s - 1]

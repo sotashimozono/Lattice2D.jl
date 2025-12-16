@@ -78,7 +78,9 @@ It mainly represents 2-dimiensional lattice, but it can be used as 1-dimensional
 - `boundary::B`: boundary condition
 - `index_method::I`: indexing method
 """
-struct Lattice{Topology<:AbstractTopology,T,B<:AbstractBoundaryCondition, I<:AbstractIndexing} <: AbstractLattice{2}
+struct Lattice{
+    Topology<:AbstractTopology,T,B<:AbstractBoundaryCondition,I<:AbstractIndexing
+} <: AbstractLattice{2}
     Lx::Int
     Ly::Int
     N::Int
@@ -96,4 +98,3 @@ struct Lattice{Topology<:AbstractTopology,T,B<:AbstractBoundaryCondition, I<:Abs
     index_method::I
 end
 export Lattice
-

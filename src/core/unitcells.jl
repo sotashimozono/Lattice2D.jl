@@ -4,7 +4,7 @@ this function returns the UnitCell associated with the given Topology type.
 If the Topology type is not recognized, it throws an error.
 """
 function get_unit_cell(::Type{T}) where {T<:AbstractTopology}
-  return error("UnitCell not defined for $T")
+    return error("UnitCell not defined for $T")
 end
 export get_unit_cell
 """
@@ -13,10 +13,10 @@ struct which represents Square lattice
 """
 struct Square <: AbstractTopology{2} end
 function get_unit_cell(::Type{Square})
-  a1 = [1.0, 0.0]
-  a2 = [0.0, 1.0]
-  conns = [Connection(1, 1, 1, 0, 1), Connection(1, 1, 0, 1, 2)]
-  return UnitCell{2,Float64}([a1, a2], [[0.0, 0.0]], conns)
+    a1 = [1.0, 0.0]
+    a2 = [0.0, 1.0]
+    conns = [Connection(1, 1, 1, 0, 1), Connection(1, 1, 0, 1, 2)]
+    return UnitCell{2,Float64}([a1, a2], [[0.0, 0.0]], conns)
 end
 
 """
@@ -25,14 +25,14 @@ struct which represents Triangular lattice
 """
 struct Triangular <: AbstractTopology{2} end
 function get_unit_cell(::Type{Triangular})
-  a1 = [1.0, 0.0]
-  a2 = [0.5, sqrt(3) / 2]
-  conns = [
-    Connection(1, 1, 1, 0, 1), # right (a1)
-    Connection(1, 1, 0, 1, 2), # up (a2)
-    Connection(1, 1, -1, 1, 3), # upper left (a2-a1)
-  ]
-  return UnitCell{2,Float64}([a1, a2], [[0.0, 0.0]], conns)
+    a1 = [1.0, 0.0]
+    a2 = [0.5, sqrt(3) / 2]
+    conns = [
+        Connection(1, 1, 1, 0, 1), # right (a1)
+        Connection(1, 1, 0, 1, 2), # up (a2)
+        Connection(1, 1, -1, 1, 3), # upper left (a2-a1)
+    ]
+    return UnitCell{2,Float64}([a1, a2], [[0.0, 0.0]], conns)
 end
 """
     Honeycomb <: AbstractTopology{2}
@@ -40,16 +40,16 @@ struct which represents Honeycomb lattice
 """
 struct Honeycomb <: AbstractTopology{2} end
 function get_unit_cell(::Type{Honeycomb})
-  a1 = [sqrt(3), 0.0]
-  a2 = [sqrt(3) / 2, 1.5]
-  d_A = [0.0, 0.0]
-  d_B = [0.0, 1.0]
-  conns = [
-    Connection(1, 2, 0, 0, 1),  # A -> B (same cell: up)
-    Connection(1, 2, 1, -1, 2), # A -> B (upper left cell)
-    Connection(1, 2, 0, -1, 3),   # A -> B (upper cell)
-  ]
-  return UnitCell{2,Float64}([a1, a2], [d_A, d_B], conns)
+    a1 = [sqrt(3), 0.0]
+    a2 = [sqrt(3) / 2, 1.5]
+    d_A = [0.0, 0.0]
+    d_B = [0.0, 1.0]
+    conns = [
+        Connection(1, 2, 0, 0, 1),  # A -> B (same cell: up)
+        Connection(1, 2, 1, -1, 2), # A -> B (upper left cell)
+        Connection(1, 2, 0, -1, 3),   # A -> B (upper cell)
+    ]
+    return UnitCell{2,Float64}([a1, a2], [d_A, d_B], conns)
 end
 """
     Kagome <: AbstractTopology{2}
@@ -57,22 +57,22 @@ struct which represents Kagome lattice
 """
 struct Kagome <: AbstractTopology{2} end
 function get_unit_cell(::Type{Kagome})
-  a1 = [1.0, 0.0]
-  a2 = [0.5, sqrt(3) / 2]
-  d_A = [0.0, 0.0]
-  d_B = 0.5 * a1
-  d_C = 0.5 * a2
-  conns = [
-    # triangle connections within the unit cell
-    Connection(1, 2, 0, 0, 1), # A-B
-    Connection(1, 3, 0, 0, 1), # A-C
-    Connection(2, 3, 0, 0, 1), # B-C
-    # connections to neighboring unit cells
-    Connection(2, 1, 1, 0, 1), # B -> Next A (right)
-    Connection(3, 1, 0, 1, 1), # C -> Next A (up)
-    Connection(2, 3, 1, -1, 1), # B -> Next C (down-right: Kagome specific)
-  ]
-  return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns)
+    a1 = [1.0, 0.0]
+    a2 = [0.5, sqrt(3) / 2]
+    d_A = [0.0, 0.0]
+    d_B = 0.5 * a1
+    d_C = 0.5 * a2
+    conns = [
+        # triangle connections within the unit cell
+        Connection(1, 2, 0, 0, 1), # A-B
+        Connection(1, 3, 0, 0, 1), # A-C
+        Connection(2, 3, 0, 0, 1), # B-C
+        # connections to neighboring unit cells
+        Connection(2, 1, 1, 0, 1), # B -> Next A (right)
+        Connection(3, 1, 0, 1, 1), # C -> Next A (up)
+        Connection(2, 3, 1, -1, 1), # B -> Next C (down-right: Kagome specific)
+    ]
+    return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns)
 end
 """
     Lieb <: AbstractTopology{2}
@@ -80,21 +80,21 @@ struct which represents Lieb lattice
 """
 struct Lieb <: AbstractTopology{2} end
 function get_unit_cell(::Type{Lieb})
-  a1 = [2.0, 0.0]
-  a2 = [0.0, 2.0]
+    a1 = [2.0, 0.0]
+    a2 = [0.0, 2.0]
 
-  # A:Corner, B:Right, C:Up
-  d_A = [0.0, 0.0]
-  d_B = [1.0, 0.0]
-  d_C = [0.0, 1.0]
+    # A:Corner, B:Right, C:Up
+    d_A = [0.0, 0.0]
+    d_B = [1.0, 0.0]
+    d_C = [0.0, 1.0]
 
-  conns = [
-    Connection(1, 2, 0, 0, 1), # A -> B (Intra)
-    Connection(1, 3, 0, 0, 2), # A -> C (Intra)
-    Connection(2, 1, 1, 0, 1), # B -> Next A (Right)
-    Connection(3, 1, 0, 1, 2),  # C -> Next A (Up)
-  ]
-  return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns)
+    conns = [
+        Connection(1, 2, 0, 0, 1), # A -> B (Intra)
+        Connection(1, 3, 0, 0, 2), # A -> C (Intra)
+        Connection(2, 1, 1, 0, 1), # B -> Next A (Right)
+        Connection(3, 1, 0, 1, 2),  # C -> Next A (Up)
+    ]
+    return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns)
 end
 
 """
@@ -103,34 +103,34 @@ struct which represents Shastry-Sutherland lattice
 """
 struct ShastrySutherland <: AbstractTopology{2} end
 function get_unit_cell(::Type{ShastrySutherland})
-  # 基本は正方格子だが、ユニットセル内に4サイトある
-  a1 = [2.0, 0.0]
-  a2 = [0.0, 2.0]
+    # 基本は正方格子だが、ユニットセル内に4サイトある
+    a1 = [2.0, 0.0]
+    a2 = [0.0, 2.0]
 
-  # 4サイト (2x2の正方格子の配置)
-  d_1 = [0.0, 0.0]
-  d_2 = [1.0, 0.0]
-  d_3 = [0.0, 1.0]
-  d_4 = [1.0, 1.0]
+    # 4サイト (2x2の正方格子の配置)
+    d_1 = [0.0, 0.0]
+    d_2 = [1.0, 0.0]
+    d_3 = [0.0, 1.0]
+    d_4 = [1.0, 1.0]
 
-  conns = [
-    # --- Nearest Neighbors (Square bonds) ---
-    Connection(1, 2, 0, 0, 1), # 1-2 (Right)
-    Connection(3, 4, 0, 0, 1), # 3-4 (Right)
-    Connection(1, 3, 0, 0, 1), # 1-3 (Up)
-    Connection(2, 4, 0, 0, 1), # 2-4 (Up)
+    conns = [
+        # --- Nearest Neighbors (Square bonds) ---
+        Connection(1, 2, 0, 0, 1), # 1-2 (Right)
+        Connection(3, 4, 0, 0, 1), # 3-4 (Right)
+        Connection(1, 3, 0, 0, 1), # 1-3 (Up)
+        Connection(2, 4, 0, 0, 1), # 2-4 (Up)
 
-    # Inter-cell connections for Square
-    Connection(2, 1, 1, 0, 1), # 2->1' (Next Right)
-    Connection(4, 3, 1, 0, 1), # 4->3'
-    Connection(3, 1, 0, 1, 1), # 3->1' (Next Up)
-    Connection(4, 2, 0, 1, 1), # 4->2'
+        # Inter-cell connections for Square
+        Connection(2, 1, 1, 0, 1), # 2->1' (Next Right)
+        Connection(4, 3, 1, 0, 1), # 4->3'
+        Connection(3, 1, 0, 1, 1), # 3->1' (Next Up)
+        Connection(4, 2, 0, 1, 1), # 4->2'
 
-    # --- Dimer Bonds (Diagonal) J' ---
-    Connection(1, 4, 0, 0, 2), # 1-4 (Cell内 対角)
-    Connection(2, 3, 1, -1, 2), # 2-3 (右下のセルとの対角)
-  ]
-  return UnitCell{2,Float64}([a1, a2], [d_1, d_2, d_3, d_4], conns)
+        # --- Dimer Bonds (Diagonal) J' ---
+        Connection(1, 4, 0, 0, 2), # 1-4 (Cell内 対角)
+        Connection(2, 3, 1, -1, 2), # 2-3 (右下のセルとの対角)
+    ]
+    return UnitCell{2,Float64}([a1, a2], [d_1, d_2, d_3, d_4], conns)
 end
 
 """
@@ -140,102 +140,54 @@ Bipartite lattice with coordination numbers 6 (Hub) and 3 (Rim).
 """
 struct Dice <: AbstractTopology{2} end
 function get_unit_cell(::Type{Dice})
-  # Triangular basis
-  a1 = [1.0, 0.0]
-  a2 = [0.5, sqrt(3) / 2]
+    # Triangular basis
+    a1 = [1.0, 0.0]
+    a2 = [0.5, sqrt(3) / 2]
 
-  # 3 sites per unit cell
-  # 1: Hub (coord 6), 2: Rim A, 3: Rim B
-  # Relative positions in the rhombic cell
-  d_1 = [0.0, 0.0]
-  d_2 = [1.0 / 3.0, 1.0 / 3.0] # 1/3 along diagonal
-  d_3 = [2.0 / 3.0, 2.0 / 3.0] # 2/3 along diagonal
+    d_1 = [0.0, 0.0]
+    d_2 = (a1 .+ a2) ./ 3
+    d_3 = (a1 .+ a2) .* (2 / 3)
 
-  # Coordinates in real space need to be mapped if d_i are relative
-  # Assuming the code handles internal basis conversion, or we define explicitly:
-  d_1_real = [0.0, 0.0]
-  d_2_real = (a1 .+ a2) ./ 3
-  d_3_real = (a1 .+ a2) .* (2 / 3)
+    conns = [
+        Connection(1, 2, 0, 0, 1),
+        Connection(2, 1, 1, 0, 1),
+        Connection(2, 1, 0, 1, 1),
+        Connection(3, 1, 1, 1, 1),
+        Connection(3, 1, 1, 0, 1),
+        Connection(3, 1, 0, 1, 1),
+    ]
 
-  conns = [
-    # Hub(1) connects to Rims(2,3)
-    Connection(1, 2, 0, 0, 1), # 1 -> 2 (Intra)
-    Connection(1, 3, 0, 0, 1), # 1 -> 3 (Intra - wait, usually 1-2 and 2-3? No, Dice is Hub-Rim)
-
-    # Dice : Honeycomb + Center.
-
-    # Connections for Hub(1) at (0,0) to 6 neighbors:
-    # It connects to 2 and 3 in current cell, and neighboring cells.
-
-    Connection(1, 2, 0, 0, 1),   # 1 -> 2 (Intra)
-    Connection(1, 3, -1, -1, 1), # 1 -> 3 (Previous diagonal)
-    Connection(1, 2, -1, 0, 1),  # 1 -> 2 (Left)
-    Connection(1, 3, 0, -1, 1),  # 1 -> 3 (Down)
-    Connection(1, 2, 0, -1, 1),  # 1 -> 2 (Down - distinct from above?)
-
-    # To be safe and symmetric (Coordination 6:3:3):
-    # Let's view it as Triangular Lattice of Hubs, with Rims on bonds? No.
-    # Let's view as Honeycomb (2,3) with Hub (1) in the middle of hexagons.
-    # 1 connects to 2,3 of the hexagon.
-
-    # Intra-cell
-    Connection(1, 2, 0, 0, 1), # Hub -> RimA
-    Connection(1, 3, 0, 0, 1), # Hub -> RimB
-
-    # Inter-cell
-    Connection(2, 1, 1, 0, 1), # RimA -> Hub (Right)
-    Connection(3, 1, 0, 1, 1), # RimB -> Hub (Up)
-    Connection(2, 1, 1, -1, 1),# RimA -> Hub (Down-Right?? Geometry check needed)
-    Connection(3, 1, -1, 1, 1), # RimB -> Hub (Up-Left??)
-  ]
-  # NOTE: The connections above are illustrative. For robust Dice, 
-  # it is easiest to treat it as a Honeycomb (sites 2,3) where site 1 is added 
-  # and bonds are re-routed.
-  # Correct minimal set for symmetric unit cell:
-  conns_corrected = [
-    Connection(1, 2, 0, 0, 1), # Hub -> RimA (Intra)
-    Connection(1, 3, 0, 0, 1), # Hub -> RimB (Intra)
-    Connection(2, 1, 1, 0, 1), # RimA -> Next Hub (Right)
-    Connection(2, 1, 0, 1, 1), # RimA -> Next Hub (Up)
-    Connection(3, 1, 1, 0, 1), # RimB -> Next Hub (Right)
-    Connection(3, 1, 0, 1, 1),  # RimB -> Next Hub (Up)
-  ]
-  # Wait, simple Dice has Hub connected to 6, Rim connected to 3.
-  # The above gives Rim coord 3 (1 intra + 2 inter). Hub coord... 2 intra + 4 inter = 6.
-  # This looks correct for the topology.
-
-  return UnitCell{2,Float64}([a1, a2], [d_1_real, d_2_real, d_3_real], conns_corrected)
+    return UnitCell{2,Float64}([a1, a2], [d_1, d_2, d_3], conns)
 end
-
 """
     UnionJack <: AbstractTopology{2}
 struct which represents Union Jack (Centered Square) lattice.
 """
 struct UnionJack <: AbstractTopology{2} end
 function get_unit_cell(::Type{UnionJack})
-  a1 = [1.0, 0.0]
-  a2 = [0.0, 1.0]
+    a1 = [1.0, 0.0]
+    a2 = [0.0, 1.0]
 
-  d_A = [0.0, 0.0]   # Corner
-  d_B = [0.5, 0.5]   # Center
+    d_A = [0.0, 0.0]   # Corner
+    d_B = [0.5, 0.5]   # Center
 
-  conns = [
-    # Square lattice bonds for A
-    Connection(1, 1, 1, 0, 1), # Right
-    Connection(1, 1, 0, 1, 1), # Up
+    conns = [
+        # Square lattice bonds for A
+        Connection(1, 1, 1, 0, 1), # Right
+        Connection(1, 1, 0, 1, 1), # Up
 
-    # Bonds to Center (B)
-    Connection(1, 2, 0, 0, 1),   # A -> B (Intra)
-    Connection(1, 2, -1, 0, 1),  # A -> B (Left)
-    Connection(1, 2, 0, -1, 1),  # A -> B (Down)
-    Connection(1, 2, -1, -1, 1),  # A -> B (Down-Left)
-  ]
-  return UnitCell{2,Float64}([a1, a2], [d_A, d_B], conns)
+        # Bonds to Center (B)
+        Connection(1, 2, 0, 0, 1),   # A -> B (Intra)
+        Connection(1, 2, -1, 0, 1),  # A -> B (Left)
+        Connection(1, 2, 0, -1, 1),  # A -> B (Down)
+        Connection(1, 2, -1, -1, 1),  # A -> B (Down-Left)
+    ]
+    return UnitCell{2,Float64}([a1, a2], [d_A, d_B], conns)
 end
 
 # Update export
 const AVAILABLE_LATTICES = (
-  Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
+    Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
 )
 
 export AVAILABLE_LATTICES
