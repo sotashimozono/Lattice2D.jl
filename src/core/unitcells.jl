@@ -144,69 +144,22 @@ function get_unit_cell(::Type{Dice})
   a1 = [1.0, 0.0]
   a2 = [0.5, sqrt(3) / 2]
 
-  # 3 sites per unit cell
-  # 1: Hub (coord 6), 2: Rim A, 3: Rim B
-  # Relative positions in the rhombic cell
   d_1 = [0.0, 0.0]
-  d_2 = [1.0 / 3.0, 1.0 / 3.0] # 1/3 along diagonal
-  d_3 = [2.0 / 3.0, 2.0 / 3.0] # 2/3 along diagonal
-
-  # Coordinates in real space need to be mapped if d_i are relative
-  # Assuming the code handles internal basis conversion, or we define explicitly:
-  d_1_real = [0.0, 0.0]
-  d_2_real = (a1 .+ a2) ./ 3
-  d_3_real = (a1 .+ a2) .* (2 / 3)
+  d_2 = (a1 .+ a2) ./ 3
+  d_3 = (a1 .+ a2) .* (2 / 3)
 
   conns = [
-    # Hub(1) connects to Rims(2,3)
-    Connection(1, 2, 0, 0, 1), # 1 -> 2 (Intra)
-    Connection(1, 3, 0, 0, 1), # 1 -> 3 (Intra - wait, usually 1-2 and 2-3? No, Dice is Hub-Rim)
+    Connection(1, 2, 0, 0, 1),
+    Connection(2, 1, 1, 0, 1),
+    Connection(2, 1, 0, 1, 1),
 
-    # Dice : Honeycomb + Center.
-
-    # Connections for Hub(1) at (0,0) to 6 neighbors:
-    # It connects to 2 and 3 in current cell, and neighboring cells.
-
-    Connection(1, 2, 0, 0, 1),   # 1 -> 2 (Intra)
-    Connection(1, 3, -1, -1, 1), # 1 -> 3 (Previous diagonal)
-    Connection(1, 2, -1, 0, 1),  # 1 -> 2 (Left)
-    Connection(1, 3, 0, -1, 1),  # 1 -> 3 (Down)
-    Connection(1, 2, 0, -1, 1),  # 1 -> 2 (Down - distinct from above?)
-
-    # To be safe and symmetric (Coordination 6:3:3):
-    # Let's view it as Triangular Lattice of Hubs, with Rims on bonds? No.
-    # Let's view as Honeycomb (2,3) with Hub (1) in the middle of hexagons.
-    # 1 connects to 2,3 of the hexagon.
-
-    # Intra-cell
-    Connection(1, 2, 0, 0, 1), # Hub -> RimA
-    Connection(1, 3, 0, 0, 1), # Hub -> RimB
-
-    # Inter-cell
-    Connection(2, 1, 1, 0, 1), # RimA -> Hub (Right)
-    Connection(3, 1, 0, 1, 1), # RimB -> Hub (Up)
-    Connection(2, 1, 1, -1, 1),# RimA -> Hub (Down-Right?? Geometry check needed)
-    Connection(3, 1, -1, 1, 1), # RimB -> Hub (Up-Left??)
+    Connection(3, 1, 1, 1, 1),
+    Connection(3, 1, 1, 0, 1),
+    Connection(3, 1, 0, 1, 1),
   ]
-  # NOTE: The connections above are illustrative. For robust Dice, 
-  # it is easiest to treat it as a Honeycomb (sites 2,3) where site 1 is added 
-  # and bonds are re-routed.
-  # Correct minimal set for symmetric unit cell:
-  conns_corrected = [
-    Connection(1, 2, 0, 0, 1), # Hub -> RimA (Intra)
-    Connection(1, 3, 0, 0, 1), # Hub -> RimB (Intra)
-    Connection(2, 1, 1, 0, 1), # RimA -> Next Hub (Right)
-    Connection(2, 1, 0, 1, 1), # RimA -> Next Hub (Up)
-    Connection(3, 1, 1, 0, 1), # RimB -> Next Hub (Right)
-    Connection(3, 1, 0, 1, 1),  # RimB -> Next Hub (Up)
-  ]
-  # Wait, simple Dice has Hub connected to 6, Rim connected to 3.
-  # The above gives Rim coord 3 (1 intra + 2 inter). Hub coord... 2 intra + 4 inter = 6.
-  # This looks correct for the topology.
 
-  return UnitCell{2,Float64}([a1, a2], [d_1_real, d_2_real, d_3_real], conns_corrected)
+  return UnitCell{2,Float64}([a1, a2], [d_1, d_2, d_3], conns)
 end
-
 """
     UnionJack <: AbstractTopology{2}
 struct which represents Union Jack (Centered Square) lattice.

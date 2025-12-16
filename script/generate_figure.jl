@@ -98,7 +98,9 @@ lattices_to_plot = [
     (Honeycomb, "Honeycomb"),
     (Kagome, "Kagome"),
     (Lieb, "Lieb"),
-    (ShastrySutherland, "Shastry-Sutherland")
+    (ShastrySutherland, "Shastry-Sutherland"),
+    (Dice, "Dice"),
+    (UnionJack, "UnionJack")
 ]
 
 Lx, Ly = 4, 4 
