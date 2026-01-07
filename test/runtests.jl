@@ -1,6 +1,6 @@
 ENV["GKSwstype"] = "100"
 
-using Lattice2D, Test, Plots
+using Lattice2D, Test, Plots, Random
 using LinearAlgebra
 
 const FIG_BASE = joinpath(pkgdir(Lattice2D), "docs", "src", "assets", "figures")
@@ -8,7 +8,7 @@ const FIG_LAT = joinpath(FIG_BASE, "lattice")
 const PATHS = Dict(:geometry => joinpath(FIG_LAT, "geometry"))
 mkpath.(values(PATHS))
 
-const dirs = ["core", "lattices", "utils"]
+const dirs = ["core", "lattices", "utils", "applications"]
 
 @testset "tests" begin
     test_args = copy(ARGS)
