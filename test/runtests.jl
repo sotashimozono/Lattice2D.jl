@@ -9,7 +9,7 @@ const FIG_LAT = joinpath(FIG_BASE, "lattice")
 const PATHS = Dict(:geometry => joinpath(FIG_LAT, "geometry"))
 mkpath.(values(PATHS))
 
-const dirs = ["core"]
+const dirs = ["core", "lattices", "utils"]
 
 @testset "tests" begin
     test_args = copy(ARGS)
