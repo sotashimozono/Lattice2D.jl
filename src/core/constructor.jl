@@ -5,8 +5,7 @@ Return the reciprocal-lattice basis associated with a real-space
 `basis` expressed as a vector of vectors. Uses
 ``B = 2\\pi (A^{-\\top})`` where the columns of ``A`` are the
 primitive real-space vectors. Provided for parity with the old
-public API; new code should prefer
-[`LatticeCore.reciprocal_lattice(lat)`](@ref LatticeCore.reciprocal_lattice).
+public API; new code should prefer `LatticeCore.reciprocal_lattice(lat)`.
 """
 function calc_reciprocal_vectors(basis::AbstractVector{<:AbstractVector})
     A = hcat(basis...)
@@ -60,7 +59,7 @@ end
 
 Normalise the user-facing `boundary` argument of
 [`build_lattice`](@ref) to a `LatticeBoundary{2}`. A single axis BC
-is broadcast to both axes with a [`NoModifier`](@ref); an explicit
+is broadcast to both axes with a `NoModifier`; an explicit
 `LatticeBoundary` is returned as-is.
 """
 _resolve_boundary(axis::AbstractAxisBC) = LatticeBoundary((axis, axis), NoModifier())
@@ -76,10 +75,9 @@ _resolve_boundary(boundary::LatticeBoundary) = boundary
 
 Construct a finite 2D lattice of topology `Topology` on an
 `Lx × Ly` sample. The `boundary` argument accepts either a single
-[`LatticeCore.AbstractAxisBC`](@ref LatticeCore.AbstractAxisBC)
-(broadcast to both axes) or an explicit
-[`LatticeCore.LatticeBoundary`](@ref LatticeCore.LatticeBoundary)
-for mixed-axis setups such as cylinders.
+`LatticeCore.AbstractAxisBC` (broadcast to both axes) or an
+explicit `LatticeCore.LatticeBoundary` for mixed-axis setups such
+as cylinders.
 
 # Examples
 
