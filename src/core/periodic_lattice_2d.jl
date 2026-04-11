@@ -85,8 +85,9 @@ end
 
 # ---- Sublattice / topology traits -----------------------------------
 
-LatticeCore.num_sublattices(lat::PeriodicLattice2D) =
+function LatticeCore.num_sublattices(lat::PeriodicLattice2D)
     length(get_unit_cell(typeof(lat.topology)).sublattice_positions)
+end
 
 LatticeCore.sublattice(lat::PeriodicLattice2D, i::Int) = lat.sublattice_ids[i]
 
@@ -101,8 +102,11 @@ end
 # Reciprocal support mirrors `periodicity`: only fully-periodic
 # samples get a standard reciprocal lattice.
 function LatticeCore.reciprocal_support(lat::PeriodicLattice2D)
-    return all(!(ax isa OpenAxis) for ax in lat.boundary.axes) ? HasReciprocal() :
-           NoReciprocal()
+    return if all(!(ax isa OpenAxis) for ax in lat.boundary.axes)
+        HasReciprocal()
+    else
+        NoReciprocal()
+    end
 end
 
 # Expose the topology name via the LatticeCore TopologyTrait.
@@ -132,7 +136,7 @@ LatticeCore.basis_vectors(lat::PeriodicLattice2D) = lat.basis_matrix
 function LatticeCore.reciprocal_lattice(lat::PeriodicLattice2D{Topo,T}) where {Topo,T}
     reciprocal_support(lat) isa HasReciprocal || throw(
         ArgumentError(
-            "PeriodicLattice2D has no reciprocal lattice unless every axis is periodic",
+            "PeriodicLattice2D has no reciprocal lattice unless every axis is periodic"
         ),
     )
     A = lat.basis_matrix
@@ -142,7 +146,9 @@ end
 
 # ---- Coordinate conversions -----------------------------------------
 
-function LatticeCore.to_real(lat::PeriodicLattice2D{Topo,T}, coord::LatticeCoord{2}) where {Topo,T}
+function LatticeCore.to_real(
+    lat::PeriodicLattice2D{Topo,T}, coord::LatticeCoord{2}
+) where {Topo,T}
     cx, cy = coord.cell
     s = coord.sublattice
     uc = get_unit_cell(Topo)

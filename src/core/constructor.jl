@@ -63,8 +63,7 @@ Normalise the user-facing `boundary` argument of
 is broadcast to both axes with a [`NoModifier`](@ref); an explicit
 `LatticeBoundary` is returned as-is.
 """
-_resolve_boundary(axis::AbstractAxisBC) =
-    LatticeBoundary((axis, axis), NoModifier())
+_resolve_boundary(axis::AbstractAxisBC) = LatticeBoundary((axis, axis), NoModifier())
 _resolve_boundary(boundary::LatticeBoundary) = boundary
 
 # ---- Main constructor -----------------------------------------------
@@ -133,9 +132,7 @@ function _build(
     a2 = SVector{2,T}(T(uc.basis[2][1]), T(uc.basis[2][2]))
     basis_matrix = SMatrix{2,2,T}(a1[1], a1[2], a2[1], a2[2])
 
-    sub_offsets = [
-        SVector{2,T}(T(p[1]), T(p[2])) for p in uc.sublattice_positions
-    ]
+    sub_offsets = [SVector{2,T}(T(p[1]), T(p[2])) for p in uc.sublattice_positions]
 
     for y in 1:Ly, x in 1:Lx
         base_id = _coord_to_index(indexing, x, y, 1, Lx, Ly, nsub)
@@ -174,7 +171,8 @@ function _build(
             # displacement, not from the wrapped positions. This gives
             # the true local bond direction regardless of wrapping.
             d_vec =
-                conn.dx * a1 + conn.dy * a2 +
+                conn.dx * a1 +
+                conn.dy * a2 +
                 (sub_offsets[conn.dst_sub] - sub_offsets[conn.src_sub])
 
             push!(nn_table[src], dst)

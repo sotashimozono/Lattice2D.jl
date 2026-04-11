@@ -15,9 +15,7 @@ end
 
 function Base.show(io::IO, lat::PeriodicLattice2D)
     Topo = string(typeof(lat.topology))
-    bc_summary = join(
-        [string(typeof(ax).name.name) for ax in lat.boundary.axes], ", "
-    )
+    bc_summary = join([string(typeof(ax).name.name) for ax in lat.boundary.axes], ", ")
     bipartite_str = lat.is_bipartite_flag ? "bipartite" : "not bipartite"
     print(
         io,
