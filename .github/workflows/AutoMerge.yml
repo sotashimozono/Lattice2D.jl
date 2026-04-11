@@ -1,20 +1,22 @@
-name: Auto Merge
+name: AutoMerge
+
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled] # label反応も入れると便利
 
 permissions:
   contents: write
   pull-requests: write
-  checks: read
 
 jobs:
-  automerge:
+  auto-merge:
     runs-on: ubuntu-latest
-    if: github.actor == 'github-actions[bot]' || github.actor == 'CompatHelper'
+    if: >
+      github.event.pull_request.user.type == 'Bot' ||
+      contains(github.event.pull_request.labels.*.name, 'automerge')
     steps:
       - name: Enable auto-merge
-        run: gh pr merge --auto --merge "$PR_URL"
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --auto --merge "$PR_URL"
