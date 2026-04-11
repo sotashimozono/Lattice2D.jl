@@ -1,7 +1,8 @@
 ENV["GKSwstype"] = "100"
 
-using Lattice2D, Test, Plots
+using Lattice2D, Test
 using LinearAlgebra
+using StaticArrays
 
 const FIG_BASE = joinpath(pkgdir(Lattice2D), "docs", "src", "assets", "figures")
 const FIG_LAT = joinpath(FIG_BASE, "lattice")

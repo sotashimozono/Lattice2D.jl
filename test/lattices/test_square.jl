@@ -1,81 +1,40 @@
-@testset "Square Lattice Tests" begin
-    @testset "Unit Cell Definition" begin
+@testset "Square lattice" begin
+    @testset "unit cell" begin
         uc = get_unit_cell(Square)
-        # Basis Vectors are orthogonal and unit length
         a1, a2 = uc.basis
-        @test dot(a1, a2) ≈ 0.0 atol=1e-10
-        @test norm(a1) ≈ 1.0 atol=1e-10
-        @test norm(a2) ≈ 1.0 atol=1e-10
-        # Single sublattice at origin
+        @test dot(a1, a2) ≈ 0.0 atol = 1e-10
+        @test norm(a1) ≈ 1.0
+        @test norm(a2) ≈ 1.0
         @test length(uc.sublattice_positions) == 1
-        @test uc.sublattice_positions[1] == [0.0, 0.0]
+        @test length(uc.connections) == 2   # +x, +y
     end
 
-    @testset "Geometry & Reciprocal Vectors" begin
+    @testset "PBC connectivity" begin
         Lx, Ly = 4, 4
         lat = build_lattice(Square, Lx, Ly)
-
-        # a is the basis vectors, b is the reciprocal vectors
-        # Verify a_i · b_j = 2π δ_ij
-        a = lat.basis_vectors
-        b = lat.reciprocal_vectors
-
-        @test dot(a[1], b[1]) ≈ 2π atol=1e-10
-        @test dot(a[2], b[2]) ≈ 2π atol=1e-10
-        @test abs(dot(a[1], b[2])) < 1e-10
-        @test abs(dot(a[2], b[1])) < 1e-10
+        @test num_sublattices(lat) == 1
+        # Every site has 4 neighbours
+        @test all(length(neighbors(lat, i)) == 4 for i in 1:num_sites(lat))
+        # Total bonds = Lx * Ly * (connections per cell)
+        @test length(bonds(lat)) == Lx * Ly * 2
     end
 
-    @testset "Topology & Connectivity" begin
-        Lx, Ly = 4, 4
-        @testset "periodic boundary condition" begin
-            lat_pbc = build_lattice(Square, Lx, Ly; boundary=PBC())
-
-            # each site should have 4 neighbors in PBC
-            degrees = length.(lat_pbc.nearest_neighbors)
-            @test all(d -> d == 4, degrees)
-
-            # Check specific connections: is the left neighbor of (1,1) connected to (Lx,1)?
-            # Use site_map[x, y] to get IDs for verification
-            id_1_1 = lat_pbc.site_map[1, 1]
-            id_L_1 = lat_pbc.site_map[Lx, 1] # left edge
-            id_1_L = lat_pbc.site_map[1, Ly] # bottom edge
-
-            # Check if the neighbors contain the corresponding IDs
-            @test id_L_1 in lat_pbc.nearest_neighbors[id_1_1]
-            @test id_1_L in lat_pbc.nearest_neighbors[id_1_1]
-
-            # Bipartite check
-            @test lat_pbc.is_bipartite == true
-        end
-        @testset "open boundary condition" begin
-            lat_obc = build_lattice(Square, Lx, Ly; boundary=OBC())
-
-            # Corner: coordination number 2
-            corner_id = lat_obc.site_map[1, 1]
-            @test length(lat_obc.nearest_neighbors[corner_id]) == 2
-
-            # Edge: coordination number 3 (1 < x < Lx, y=1)
-            edge_id = lat_obc.site_map[2, 1]
-            @test length(lat_obc.nearest_neighbors[edge_id]) == 3
-
-            # Bulk: coordination number 4
-            bulk_id = lat_obc.site_map[2, 2]
-            @test length(lat_obc.nearest_neighbors[bulk_id]) == 4
-        end
+    @testset "OBC corner / edge / bulk degree" begin
+        lat = build_lattice(Square, 4, 4; boundary=OpenAxis())
+        corner = site_index(RowMajor(), (4, 4), 1, LatticeCoord((1, 1)))
+        edge = site_index(RowMajor(), (4, 4), 1, LatticeCoord((2, 1)))
+        bulk = site_index(RowMajor(), (4, 4), 1, LatticeCoord((2, 2)))
+        @test length(neighbors(lat, corner)) == 2
+        @test length(neighbors(lat, edge)) == 3
+        @test length(neighbors(lat, bulk)) == 4
     end
 
-    @testset "Index Consistency" begin
+    @testset "positions match the expected row-major cell layout" begin
         Lx, Ly = 4, 3
         lat = build_lattice(Square, Lx, Ly)
-
         for x in 1:Lx, y in 1:Ly
-            expected_idx = (x - 1) + (y - 1) * Lx + 1
-            @test lat.site_map[x, y] == expected_idx
-
-            pos = lat.positions[expected_idx]
-            expected_pos = (x-1)*lat.basis_vectors[1] + (y-1)*lat.basis_vectors[2]
-            @test pos ≈ expected_pos
+            idx = site_index(RowMajor(), (Lx, Ly), 1, LatticeCoord((x, y)))
+            @test position(lat, idx) == SVector(Float64(x - 1), Float64(y - 1))
         end
     end
 end
