@@ -2,8 +2,7 @@
     PeriodicLattice2D{Topo, T, B, I, L}
 
 Finite 2D periodic lattice built from a topology
-([`get_unit_cell`](@ref)) and a
-[`LatticeCore.LatticeBoundary`](@ref LatticeCore.LatticeBoundary).
+([`get_unit_cell`](@ref)) and a `LatticeCore.LatticeBoundary`.
 Subtype of `LatticeCore.AbstractLattice{2, T}`; every
 LatticeCore-side method (`num_sites`, `position`, `neighbors`,
 `boundary`, `size_trait`, `site_layout`, `reciprocal_lattice`, ...)
