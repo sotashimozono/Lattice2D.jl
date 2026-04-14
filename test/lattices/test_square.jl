@@ -16,7 +16,7 @@
         # Every site has 4 neighbours
         @test all(length(neighbors(lat, i)) == 4 for i in 1:num_sites(lat))
         # Total bonds = Lx * Ly * (connections per cell)
-        @test length(bonds(lat)) == Lx * Ly * 2
+        @test count(_ -> true, bonds(lat)) == Lx * Ly * 2
     end
 
     @testset "OBC corner / edge / bulk degree" begin

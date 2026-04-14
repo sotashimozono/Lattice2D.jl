@@ -15,7 +15,7 @@
         @test num_sites(lat) == Lx * Ly * 3
         # Every site of Kagome under PBC has 4 nearest neighbours
         @test all(length(neighbors(lat, i)) == 4 for i in 1:num_sites(lat))
-        @test length(bonds(lat)) == Lx * Ly * 6
+        @test count(_ -> true, bonds(lat)) == Lx * Ly * 6
     end
 
     @testset "triangles prevent bipartiteness" begin

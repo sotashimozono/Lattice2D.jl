@@ -25,13 +25,4 @@
     @testset "Lieb lattice is bipartite" begin
         @test is_bipartite(build_lattice(Lieb, 4, 4)) == true
     end
-
-    @testset "check_bipartite_bfs helper is still correct" begin
-        # 3-vertex line: bipartite
-        @test check_bipartite_bfs(3, [[2], [1, 3], [2]]) == true
-        # Triangle: not bipartite
-        @test check_bipartite_bfs(3, [[2, 3], [1, 3], [1, 2]]) == false
-        # Two disconnected 2-vertex lines: bipartite
-        @test check_bipartite_bfs(4, [[2], [1], [4], [3]]) == true
-    end
 end

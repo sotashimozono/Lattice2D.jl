@@ -3,7 +3,7 @@
         Lx, Ly = 4, 4
         for Topo in AVAILABLE_LATTICES
             lat = build_lattice(Topo, Lx, Ly)
-            @test lat isa PeriodicLattice2D
+            @test lat isa Lattice2D.Lattice
             @test num_sites(lat) == Lx * Ly * num_sublattices(lat)
             @test size_trait(lat) isa FiniteSize{2}
             @test periodicity(lat) isa Periodic
@@ -24,7 +24,7 @@
         degrees = [length(neighbors(lat_obc, i)) for i in 1:num_sites(lat_obc)]
         @test minimum(degrees) == 2     # corners
         @test maximum(degrees) == 4     # interior
-        @test length(bonds(lat_obc)) < length(bonds(build_lattice(Square, Lx, Ly)))
+        @test count(_ -> true, bonds(lat_obc)) < count(_ -> true, bonds(build_lattice(Square, Lx, Ly)))
     end
 
     @testset "cylinder (PBC × OBC) mixes neighbour counts" begin

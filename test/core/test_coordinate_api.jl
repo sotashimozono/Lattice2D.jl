@@ -55,7 +55,7 @@
         snake = build_lattice(Square, 4, 4; indexing=Snake())
 
         @test num_sites(row_major) == num_sites(snake)
-        @test length(bonds(row_major)) == length(bonds(snake))
+        @test count(_ -> true, bonds(row_major)) == count(_ -> true, bonds(snake))
     end
 
     @testset "Base.length / size match lattice dimensions" begin

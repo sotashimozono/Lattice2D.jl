@@ -12,7 +12,7 @@
         lat = build_lattice(ShastrySutherland, Lx, Ly)
         @test num_sublattices(lat) == 4
         @test num_sites(lat) == Lx * Ly * 4
-        @test length(bonds(lat)) ==
+        @test count(_ -> true, bonds(lat)) ==
             Lx * Ly * length(get_unit_cell(ShastrySutherland).connections)
     end
 
