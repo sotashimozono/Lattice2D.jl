@@ -107,11 +107,15 @@ function _connection_steps(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
                 ny, ok_y = apply_axis_bc(by, ty, Ly)
                 if ok_y
                     j = site_index(
-                        lat.indexing, (Lx, Ly), nsub,
+                        lat.indexing,
+                        (Lx, Ly),
+                        nsub,
                         LatticeCoord{2}((nx, ny), conn.dst_sub),
                     )
-                    d_vec = conn.dx * a1 + conn.dy * a2 +
-                            (subs[conn.dst_sub] - subs[conn.src_sub])
+                    d_vec =
+                        conn.dx * a1 +
+                        conn.dy * a2 +
+                        (subs[conn.dst_sub] - subs[conn.src_sub])
                     push!(steps, (j, d_vec, Symbol("type_", conn.type)))
                 end
             end
@@ -124,11 +128,14 @@ function _connection_steps(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
                 ny, ok_y = apply_axis_bc(by, ty, Ly)
                 if ok_y
                     j = site_index(
-                        lat.indexing, (Lx, Ly), nsub,
+                        lat.indexing,
+                        (Lx, Ly),
+                        nsub,
                         LatticeCoord{2}((nx, ny), conn.src_sub),
                     )
-                    d_vec = -(conn.dx * a1 + conn.dy * a2) +
-                            (subs[conn.src_sub] - subs[conn.dst_sub])
+                    d_vec =
+                        -(conn.dx * a1 + conn.dy * a2) +
+                        (subs[conn.src_sub] - subs[conn.dst_sub])
                     push!(steps, (j, d_vec, Symbol("type_", conn.type)))
                 end
             end
@@ -223,9 +230,7 @@ end
 
 function LatticeCore.reciprocal_lattice(lat::Lattice{Topo,T}) where {Topo,T}
     reciprocal_support(lat) isa HasReciprocal || throw(
-        ArgumentError(
-            "Lattice has no reciprocal lattice unless every axis is periodic"
-        ),
+        ArgumentError("Lattice has no reciprocal lattice unless every axis is periodic")
     )
     A = basis_vectors(lat)
     B = SMatrix{2,2,T}(T(2π) * inv(transpose(A)))
@@ -234,9 +239,7 @@ end
 
 # ---- Coordinate conversions -----------------------------------------
 
-function LatticeCore.to_real(
-    lat::Lattice{Topo,T}, coord::LatticeCoord{2}
-) where {Topo,T}
+function LatticeCore.to_real(lat::Lattice{Topo,T}, coord::LatticeCoord{2}) where {Topo,T}
     cx, cy = coord.cell
     s = coord.sublattice
     a1, a2 = _basis_sv(typeof(lat))

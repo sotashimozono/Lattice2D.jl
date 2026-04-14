@@ -54,7 +54,7 @@ function build_lattice(
     bc = _resolve_boundary(boundary)
     T = Float64
     return Lattice{Topology,T,typeof(bc),typeof(indexing),typeof(layout)}(
-        Lx, Ly, bc, indexing, layout,
+        Lx, Ly, bc, indexing, layout
     )
 end
 

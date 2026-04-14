@@ -24,7 +24,8 @@
         degrees = [length(neighbors(lat_obc, i)) for i in 1:num_sites(lat_obc)]
         @test minimum(degrees) == 2     # corners
         @test maximum(degrees) == 4     # interior
-        @test count(_ -> true, bonds(lat_obc)) < count(_ -> true, bonds(build_lattice(Square, Lx, Ly)))
+        @test count(_ -> true, bonds(lat_obc)) <
+            count(_ -> true, bonds(build_lattice(Square, Lx, Ly)))
     end
 
     @testset "cylinder (PBC × OBC) mixes neighbour counts" begin
