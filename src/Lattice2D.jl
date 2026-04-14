@@ -80,7 +80,7 @@ import LatticeCore:
 
 include("core/topology.jl")
 include("core/unitcells.jl")
-include("core/periodic_lattice_2d.jl")
+include("core/lattice.jl")
 include("core/constructor.jl")
 include("utils/iterator.jl")
 
@@ -88,9 +88,8 @@ include("utils/iterator.jl")
 
 # Lattice2D-local types and functions
 export AbstractTopology, Connection, UnitCell, get_unit_cell
-export PeriodicLattice2D
+export Lattice
 export build_lattice
-export calc_reciprocal_vectors, check_bipartite_bfs
 export AVAILABLE_LATTICES
 export Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
 

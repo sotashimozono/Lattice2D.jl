@@ -14,7 +14,7 @@
         @test num_sublattices(lat) == 2
         @test num_sites(lat) == Lx * Ly * 2
         @test all(length(neighbors(lat, i)) == 3 for i in 1:num_sites(lat))
-        @test length(bonds(lat)) == Lx * Ly * 3
+        @test count(_ -> true, bonds(lat)) == Lx * Ly * 3
     end
 
     @testset "bipartite A / B split" begin

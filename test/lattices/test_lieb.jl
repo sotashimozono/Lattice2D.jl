@@ -26,7 +26,7 @@
             @test length(neighbors(lat, i)) == 2
         end
 
-        @test length(bonds(lat)) == Lx * Ly * 4
+        @test count(_ -> true, bonds(lat)) == Lx * Ly * 4
     end
 
     @testset "bipartite (A corners vs B/C edges)" begin
