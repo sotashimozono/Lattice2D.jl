@@ -2,6 +2,7 @@ ENV["GKSwstype"] = "100"
 
 using Lattice2D, Test
 using LinearAlgebra
+using Random
 using StaticArrays
 
 const FIG_BASE = joinpath(pkgdir(Lattice2D), "docs", "src", "assets", "figures")
