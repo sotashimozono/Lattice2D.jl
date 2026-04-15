@@ -248,8 +248,33 @@ function get_unit_cell(::Type{Dice})
         Connection(3, 1, 1, 0, 1),
         Connection(3, 1, 0, 1, 1),
     ]
+    # Dice (T3) has three rhombi per unit cell, one for each of the
+    # three directions between adjacent hubs (+a1, +a2, and +a2-a1).
+    # Each rhombus has 4 corners: 2 hubs on opposite ends and 2 rims
+    # (one rim1 and one rim2) on the other diagonal.
+    #
+    #   :rhombus_east      — between hub(0,0) and hub(1,0)
+    #     corners: hub(0,0) → rim2(0,-1) → hub(1,0) → rim1(0,0)
+    #   :rhombus_northeast — between hub(0,0) and hub(0,1)
+    #     corners: hub(0,0) → rim1(0,0) → hub(0,1) → rim2(-1,0)
+    #   :rhombus_northwest — between hub(0,0) and hub(-1,1)
+    #     corners: hub(0,0) → rim2(-1,0) → hub(-1,1) → rim1(-1,0)
+    #
+    # Numerically verified: every rhombus has all four edges of
+    # length sqrt(1/3) (≈ 0.577), the Dice hub-rim NN distance.
+    plaqs = [
+        PlaquetteRule(
+            [(1, 0, 0), (3, 0, -1), (1, 1, 0), (2, 0, 0)], :rhombus_east
+        ),
+        PlaquetteRule(
+            [(1, 0, 0), (2, 0, 0), (1, 0, 1), (3, -1, 0)], :rhombus_northeast
+        ),
+        PlaquetteRule(
+            [(1, 0, 0), (3, -1, 0), (1, -1, 1), (2, -1, 0)], :rhombus_northwest
+        ),
+    ]
 
-    return UnitCell{2,Float64}([a1, a2], [d_1, d_2, d_3], conns)
+    return UnitCell{2,Float64}([a1, a2], [d_1, d_2, d_3], conns, plaqs)
 end
 
 """

@@ -27,6 +27,47 @@ function LatticeCore.num_elements(lat::Lattice, ::PlaquetteCenter)
     return length(_get_cache(lat).plaquettes)
 end
 
+"""
+    num_bonds(lat::Lattice) → Int
+
+Convenience alias for `num_elements(lat, BondCenter())` / the length
+of the cached bond Vector. O(1) after the first cache access.
+"""
+num_bonds(lat::Lattice) = num_elements(lat, BondCenter())
+
+"""
+    num_plaquettes(lat::Lattice) → Int
+
+Convenience alias for `num_elements(lat, PlaquetteCenter())`.
+Returns 0 for topologies whose unit cell declares no
+[`PlaquetteRule`](@ref) (currently this is just `Dice` — wait, now
+it is not; every shipped topology has a plaquette list as of Iter 6).
+"""
+num_plaquettes(lat::Lattice) = num_elements(lat, PlaquetteCenter())
+
+"""
+    bond_type(lat::Lattice, i::Int, j::Int) → Symbol
+
+Return the bond-type tag of the edge connecting sites `i` and `j` on
+`lat`. Uses the cached bond-index reverse lookup, so each call is
+O(1) after the first cache access. Throws `ArgumentError` if there is
+no declared bond between `i` and `j`.
+
+The tag is inherited from the `Connection.type` of the underlying
+unit cell, so it distinguishes anisotropic edges such as the
+ShastrySutherland J′ dimer (`:type_2`) from its square-lattice NN
+bonds (`:type_1`).
+"""
+function bond_type(lat::Lattice, i::Int, j::Int)
+    cache = _get_cache(lat)
+    key = _edge_key(i, j)
+    idx = get(cache.bond_index_of, key, 0)
+    idx == 0 && throw(ArgumentError(
+        "no bond between sites $i and $j on $(typeof(lat).name.name)"
+    ))
+    return cache.bonds[idx].type
+end
+
 # ---- Element iteration --------------------------------------------
 
 LatticeCore.elements(lat::Lattice, ::VertexCenter) = 1:num_sites(lat)
