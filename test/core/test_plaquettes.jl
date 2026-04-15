@@ -158,8 +158,7 @@
             found = false
             for (i, j) in ((1, 3), (2, 4))
                 edge = (
-                    min(p.vertices[i], p.vertices[j]),
-                    max(p.vertices[i], p.vertices[j]),
+                    min(p.vertices[i], p.vertices[j]), max(p.vertices[i], p.vertices[j])
                 )
                 if edge in dimer_edges
                     found = true

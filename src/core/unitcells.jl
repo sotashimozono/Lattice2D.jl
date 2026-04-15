@@ -146,19 +146,21 @@ function get_unit_cell(::Type{Lieb})
     # One plaquette per cell: the 2×2 square with 4 corner A's and 4
     # edge sites (2 B's bottom/top, 2 C's left/right). CCW walk:
     #   A(0,0) → B(0,0) → A(1,0) → C(1,0) → A(1,1) → B(0,1) → A(0,1) → C(0,0)
-    plaqs = [PlaquetteRule(
-        [
-            (1, 0, 0),   # A(0,0) — bottom-left corner
-            (2, 0, 0),   # B(0,0) — bottom edge
-            (1, 1, 0),   # A(1,0) — bottom-right corner
-            (3, 1, 0),   # C(1,0) — right edge
-            (1, 1, 1),   # A(1,1) — top-right corner
-            (2, 0, 1),   # B(0,1) — top edge
-            (1, 0, 1),   # A(0,1) — top-left corner
-            (3, 0, 0),   # C(0,0) — left edge
-        ],
-        :square,
-    )]
+    plaqs = [
+        PlaquetteRule(
+            [
+                (1, 0, 0),   # A(0,0) — bottom-left corner
+                (2, 0, 0),   # B(0,0) — bottom edge
+                (1, 1, 0),   # A(1,0) — bottom-right corner
+                (3, 1, 0),   # C(1,0) — right edge
+                (1, 1, 1),   # A(1,1) — top-right corner
+                (2, 0, 1),   # B(0,1) — top edge
+                (1, 0, 1),   # A(0,1) — top-left corner
+                (3, 0, 0),   # C(0,0) — left edge
+            ],
+            :square,
+        ),
+    ]
     return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns, plaqs)
 end
 
@@ -212,18 +214,10 @@ function get_unit_cell(::Type{ShastrySutherland})
     #   P4 (top-right, contains the 2-3 dimer under cell shift):
     #     (1,1)-(2,1)-(2,2)-(1,2)  = sub 4@(0,0), 3@(1,0), 1@(1,1), 2@(0,1)
     plaqs = [
-        PlaquetteRule(
-            [(1, 0, 0), (2, 0, 0), (4, 0, 0), (3, 0, 0)], :dimer_square
-        ),
-        PlaquetteRule(
-            [(2, 0, 0), (1, 1, 0), (3, 1, 0), (4, 0, 0)], :square
-        ),
-        PlaquetteRule(
-            [(3, 0, 0), (4, 0, 0), (2, 0, 1), (1, 0, 1)], :square
-        ),
-        PlaquetteRule(
-            [(4, 0, 0), (3, 1, 0), (1, 1, 1), (2, 0, 1)], :dimer_square
-        ),
+        PlaquetteRule([(1, 0, 0), (2, 0, 0), (4, 0, 0), (3, 0, 0)], :dimer_square),
+        PlaquetteRule([(2, 0, 0), (1, 1, 0), (3, 1, 0), (4, 0, 0)], :square),
+        PlaquetteRule([(3, 0, 0), (4, 0, 0), (2, 0, 1), (1, 0, 1)], :square),
+        PlaquetteRule([(4, 0, 0), (3, 1, 0), (1, 1, 1), (2, 0, 1)], :dimer_square),
     ]
     return UnitCell{2,Float64}([a1, a2], [d_1, d_2, d_3, d_4], conns, plaqs)
 end
