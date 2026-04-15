@@ -144,16 +144,101 @@ function _connection_steps(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
     return steps
 end
 
-function LatticeCore.neighbors(lat::Lattice, i::Int)
-    out = Int[]
-    seen = Set{Int}()
-    for (j, _, _) in _connection_steps(lat, i)
-        if j != i && !(j in seen)
-            push!(out, j)
-            push!(seen, j)
+"""
+    neighbors(lat::Lattice, i::Int) → Vector{Int}
+    neighbors(lat::Lattice, i::Int; shell::Int) → Vector{Int}
+
+Neighbour indices of site `i`.
+
+- Without the `shell` keyword, returns **all declared unit-cell
+  connections**. For most topologies this is the geometric NN; for
+  topologies whose unit cell mixes bond types at different distances
+  (e.g. [`ShastrySutherland`](@ref), which declares both square NN
+  and dimer J′ bonds), the returned set is the union.
+- With `shell=k` (k ≥ 1), returns the `k`-th **geometric** neighbour
+  shell, ranked by Euclidean distance. For `ShastrySutherland` this
+  separates the square NN (`shell=1`) from the dimer partner
+  (`shell=2`).
+
+The geometric search is bounded by the sample size — for PBC the
+minimum-image distance is used, for OBC only in-sample candidates
+are considered.
+"""
+function LatticeCore.neighbors(lat::Lattice, i::Int; shell::Union{Nothing,Int}=nothing)
+    if shell === nothing
+        out = Int[]
+        seen = Set{Int}()
+        for (j, _, _) in _connection_steps(lat, i)
+            if j != i && !(j in seen)
+                push!(out, j)
+                push!(seen, j)
+            end
+        end
+        return out
+    else
+        shell ≥ 1 || throw(ArgumentError("shell must be ≥ 1, got $shell"))
+        return _neighbors_by_shell(lat, i, shell)
+    end
+end
+
+# Compute geometric k-th shell neighbours by scanning a full
+# `(−Lx, Lx) × (−Ly, Ly)` window of unit-cell displacements, filtering
+# candidates through the axis BCs and ranking unique distances.
+function _neighbors_by_shell(lat::Lattice{Topo,T}, i::Int, k::Int) where {Topo,T}
+    Lx, Ly = _dims(lat)
+    nsub = num_sublattices(lat)
+    coord_i = lattice_coord(lat.indexing, (Lx, Ly), nsub, i)
+    cx, cy = coord_i.cell
+    si = coord_i.sublattice
+
+    bx, by = lat.boundary.axes
+    a1, a2 = _basis_sv(typeof(lat))
+    subs = _sub_offsets(typeof(lat))
+
+    # `dist_map[j]` is the minimum distance at which we've reached
+    # site j from site i across all unwrapped (dx, dy, sub') candidates.
+    dist_map = Dict{Int,T}()
+
+    for dy in -(Ly - 1):(Ly - 1), dx in -(Lx - 1):(Lx - 1), s in 1:nsub
+        tx = cx + dx
+        ty = cy + dy
+        nx, ok_x = apply_axis_bc(bx, tx, Lx)
+        ok_x || continue
+        ny, ok_y = apply_axis_bc(by, ty, Ly)
+        ok_y || continue
+        j = site_index(lat.indexing, (Lx, Ly), nsub, LatticeCoord{2}((nx, ny), s))
+        j == i && continue
+        d_vec = dx * a1 + dy * a2 + (subs[s] - subs[si])
+        d = norm(d_vec)
+        cur = get(dist_map, j, typemax(T))
+        if d < cur
+            dist_map[j] = d
         end
     end
-    return out
+
+    isempty(dist_map) && return Int[]
+
+    # Group unique distances with a tolerance (float noise from basis
+    # matrix multiplication can jitter the last few ulps).
+    sorted_d = sort(collect(values(dist_map)))
+    shells = T[sorted_d[1]]
+    for d in sorted_d
+        ref = shells[end]
+        if d - ref > 10 * eps(T) * max(one(T), ref)
+            push!(shells, d)
+        end
+    end
+
+    k > length(shells) && return Int[]
+    target = shells[k]
+    tol = 10 * eps(T) * max(one(T), target)
+    result = Int[]
+    for (j, d) in dist_map
+        if abs(d - target) ≤ tol
+            push!(result, j)
+        end
+    end
+    return sort!(result)
 end
 
 function LatticeCore.neighbor_bonds(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
