@@ -257,19 +257,97 @@ function LatticeCore.bonds(lat::Lattice)
     return (b for i in 1:num_sites(lat) for b in neighbor_bonds(lat, i) if b.j > b.i)
 end
 
-# Override LatticeCore's default `bond_center` so PBC-wrapped bonds
-# return the correct geometric midpoint. The default formula takes
-# `(position(b.i) + position(b.j)) / 2`, which for a wrapped neighbour
-# computes the midpoint between the source and the wrapped target's
-# position on the *opposite* side of the sample — i.e. it lands inside
-# the sample interior instead of just outside the boundary. The bond
-# already carries the unwrapped displacement in `bond.vector`, so
-# `position(i) + bond.vector / 2` gives the true midpoint.
+# ---- Plaquette enumeration ------------------------------------------
 #
-# This override can be removed once LatticeCore 0.8.2 (carrying the
-# upstream fix) is registered and Lattice2D's compat is bumped.
-function LatticeCore.bond_center(lat::Lattice{Topo,T}, b::Bond{2,T}) where {Topo,T}
-    return position(lat, b.i) + b.vector / 2
+# Walks `(cell_x, cell_y, kind)` for every PlaquetteRule declared on
+# the topology, applies per-axis BCs to each corner, drops any
+# plaquette whose corners aren't all valid, and materialises the
+# result as a `Plaquette{2, T}` with its boundary vertex indices,
+# centroid and type tag.
+
+function LatticeCore.plaquettes(lat::Lattice{Topo,T}) where {Topo,T}
+    return _materialise_plaquettes(lat)
+end
+
+function _materialise_plaquettes(lat::Lattice{Topo,T}) where {Topo,T}
+    Lx, Ly = _dims(lat)
+    nsub = num_sublattices(lat)
+    uc = get_unit_cell(Topo)
+    bx, by = lat.boundary.axes
+    a1, a2 = _basis_sv(typeof(lat))
+    subs = _sub_offsets(typeof(lat))
+
+    out = Plaquette{2,T}[]
+    isempty(uc.plaquettes) && return out
+
+    for cy in 1:Ly, cx in 1:Lx
+        for rule in uc.plaquettes
+            vertices = Int[]
+            positions_acc = SVector{2,T}[]
+            valid = true
+            for (s, dx, dy) in rule.corners
+                tx, ty = cx + dx, cy + dy
+                nx, ok_x = apply_axis_bc(bx, tx, Lx)
+                if !ok_x
+                    valid = false
+                    break
+                end
+                ny, ok_y = apply_axis_bc(by, ty, Ly)
+                if !ok_y
+                    valid = false
+                    break
+                end
+                j = site_index(
+                    lat.indexing, (Lx, Ly), nsub,
+                    LatticeCoord{2}((nx, ny), s),
+                )
+                push!(vertices, j)
+                # Centroid uses the **unwrapped** corner position
+                # (relative to the anchor cell) so the centre of a
+                # PBC-wrapped plaquette sits just outside the sample
+                # edge instead of inside its interior — same rule
+                # `bond_center` uses.
+                anchor = (cx - 1) * a1 + (cy - 1) * a2
+                corner_pos = anchor + dx * a1 + dy * a2 + subs[s]
+                push!(positions_acc, corner_pos)
+            end
+            if valid
+                center = sum(positions_acc) / length(positions_acc)
+                push!(out, Plaquette{2,T}(vertices, center, rule.type))
+            end
+        end
+    end
+    return out
+end
+
+# Override `num_elements(::PlaquetteCenter)` so we never materialise
+# the whole list just to count — O(Lx*Ly) scan that skips rejected
+# corners by BC.
+function LatticeCore.num_elements(lat::Lattice{Topo}, ::PlaquetteCenter) where {Topo}
+    Lx, Ly = _dims(lat)
+    uc = get_unit_cell(Topo)
+    isempty(uc.plaquettes) && return 0
+    bx, by = lat.boundary.axes
+    count = 0
+    for cy in 1:Ly, cx in 1:Lx
+        for rule in uc.plaquettes
+            all_valid = true
+            for (_, dx, dy) in rule.corners
+                _, ok_x = apply_axis_bc(bx, cx + dx, Lx)
+                if !ok_x
+                    all_valid = false
+                    break
+                end
+                _, ok_y = apply_axis_bc(by, cy + dy, Ly)
+                if !ok_y
+                    all_valid = false
+                    break
+                end
+            end
+            all_valid && (count += 1)
+        end
+    end
+    return count
 end
 
 # ---- Graph / topology traits ----------------------------------------

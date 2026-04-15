@@ -92,7 +92,18 @@ import LatticeCore:
     VertexCenter,
     BondCenter,
     PlaquetteCenter,
-    CellCenter
+    CellCenter,
+    num_elements,
+    elements,
+    element_position,
+    element_positions,
+    element_neighbors,
+    incident,
+    PlaquetteRule,
+    Plaquette,
+    plaquettes,
+    neighbor_plaquettes,
+    plaquette_center
 
 # ---- Lattice2D source files -----------------------------------------
 
@@ -137,6 +148,9 @@ export Bond, bond_center
 export apply_axis_bc, axis_phase, bond_weight
 export AbstractLatticeElement, VertexCenter, BondCenter, PlaquetteCenter, CellCenter
 export element_type, state_type, random_state, zero_state, domain
+export num_elements, elements, element_position, element_positions
+export element_neighbors, incident
+export PlaquetteRule, Plaquette, plaquettes, neighbor_plaquettes, plaquette_center
 export materialize, require_finite
 
 end # module Lattice2D
