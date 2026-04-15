@@ -53,7 +53,9 @@
     end
 
     @testset "num_plaquettes matches cached plaquette count" begin
-        for Topo in (Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack)
+        for Topo in (
+            Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
+        )
             lat = build_lattice(Topo, 4, 4)
             @test num_plaquettes(lat) == length(plaquettes(lat))
             @test num_plaquettes(lat) == num_elements(lat, PlaquetteCenter())

@@ -62,9 +62,8 @@ function bond_type(lat::Lattice, i::Int, j::Int)
     cache = _get_cache(lat)
     key = _edge_key(i, j)
     idx = get(cache.bond_index_of, key, 0)
-    idx == 0 && throw(ArgumentError(
-        "no bond between sites $i and $j on $(typeof(lat).name.name)"
-    ))
+    idx == 0 &&
+        throw(ArgumentError("no bond between sites $i and $j on $(typeof(lat).name.name)"))
     return cache.bonds[idx].type
 end
 

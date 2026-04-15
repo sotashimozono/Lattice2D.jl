@@ -263,15 +263,9 @@ function get_unit_cell(::Type{Dice})
     # Numerically verified: every rhombus has all four edges of
     # length sqrt(1/3) (≈ 0.577), the Dice hub-rim NN distance.
     plaqs = [
-        PlaquetteRule(
-            [(1, 0, 0), (3, 0, -1), (1, 1, 0), (2, 0, 0)], :rhombus_east
-        ),
-        PlaquetteRule(
-            [(1, 0, 0), (2, 0, 0), (1, 0, 1), (3, -1, 0)], :rhombus_northeast
-        ),
-        PlaquetteRule(
-            [(1, 0, 0), (3, -1, 0), (1, -1, 1), (2, -1, 0)], :rhombus_northwest
-        ),
+        PlaquetteRule([(1, 0, 0), (3, 0, -1), (1, 1, 0), (2, 0, 0)], :rhombus_east),
+        PlaquetteRule([(1, 0, 0), (2, 0, 0), (1, 0, 1), (3, -1, 0)], :rhombus_northeast),
+        PlaquetteRule([(1, 0, 0), (3, -1, 0), (1, -1, 1), (2, -1, 0)], :rhombus_northwest),
     ]
 
     return UnitCell{2,Float64}([a1, a2], [d_1, d_2, d_3], conns, plaqs)
