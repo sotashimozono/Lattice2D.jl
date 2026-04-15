@@ -257,6 +257,21 @@ function LatticeCore.bonds(lat::Lattice)
     return (b for i in 1:num_sites(lat) for b in neighbor_bonds(lat, i) if b.j > b.i)
 end
 
+# Override LatticeCore's default `bond_center` so PBC-wrapped bonds
+# return the correct geometric midpoint. The default formula takes
+# `(position(b.i) + position(b.j)) / 2`, which for a wrapped neighbour
+# computes the midpoint between the source and the wrapped target's
+# position on the *opposite* side of the sample — i.e. it lands inside
+# the sample interior instead of just outside the boundary. The bond
+# already carries the unwrapped displacement in `bond.vector`, so
+# `position(i) + bond.vector / 2` gives the true midpoint.
+#
+# This override can be removed once LatticeCore 0.8.2 (carrying the
+# upstream fix) is registered and Lattice2D's compat is bumped.
+function LatticeCore.bond_center(lat::Lattice{Topo,T}, b::Bond{2,T}) where {Topo,T}
+    return position(lat, b.i) + b.vector / 2
+end
+
 # ---- Graph / topology traits ----------------------------------------
 
 function LatticeCore.is_bipartite(lat::Lattice)

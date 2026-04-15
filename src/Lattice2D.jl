@@ -74,7 +74,25 @@ import LatticeCore:
     NoReciprocal,
     FiniteSize,
     monkhorst_pack,
-    gamma_centered
+    gamma_centered,
+    num_k_points,
+    k_point,
+    reciprocal_basis,
+    momentum_lattice,
+    fourier_module,
+    structure_factor,
+    bond_center,
+    is_finite,
+    state_type,
+    random_state,
+    zero_state,
+    domain,
+    element_type,
+    AbstractLatticeElement,
+    VertexCenter,
+    BondCenter,
+    PlaquetteCenter,
+    CellCenter
 
 # ---- Lattice2D source files -----------------------------------------
 
@@ -112,6 +130,7 @@ export reciprocal_support
 export AbstractSizeTrait, FiniteSize, InfiniteSize, QuasiInfiniteSize
 export size_trait, is_finite
 export basis_vectors, reciprocal_lattice, fourier_module, momentum_lattice
+export num_k_points, k_point, reciprocal_basis
 export to_real, to_lattice, to_hyper
 export monkhorst_pack, gamma_centered, structure_factor
 export Bond, bond_center
