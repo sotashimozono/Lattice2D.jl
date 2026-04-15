@@ -80,9 +80,7 @@
         counts = Dict{Symbol,Int}()
         for indexing in (RowMajor(), ColMajor(), Snake())
             lat = build_lattice(Square, 4, 4; indexing=indexing)
-            counts[Symbol(typeof(indexing).name.name)] = length(
-                neighbors(lat, 1; shell=1)
-            )
+            counts[Symbol(typeof(indexing).name.name)] = length(neighbors(lat, 1; shell=1))
         end
         @test length(unique(values(counts))) == 1
     end

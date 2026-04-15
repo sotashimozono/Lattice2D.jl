@@ -199,7 +199,7 @@ function _neighbors_by_shell(lat::Lattice{Topo,T}, i::Int, k::Int) where {Topo,T
     # site j from site i across all unwrapped (dx, dy, sub') candidates.
     dist_map = Dict{Int,T}()
 
-    for dy in -(Ly - 1):(Ly - 1), dx in -(Lx - 1):(Lx - 1), s in 1:nsub
+    for dy in (-(Ly - 1)):(Ly - 1), dx in (-(Lx - 1)):(Lx - 1), s in 1:nsub
         tx = cx + dx
         ty = cy + dy
         nx, ok_x = apply_axis_bc(bx, tx, Lx)
