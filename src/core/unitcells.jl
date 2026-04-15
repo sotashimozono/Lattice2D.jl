@@ -11,10 +11,7 @@ function get_unit_cell(::Type{Square})
     a2 = [0.0, 1.0]
     conns = [Connection(1, 1, 1, 0, 1), Connection(1, 1, 0, 1, 2)]
     # Unit square with corners at (0,0), (1,0), (1,1), (0,1), walked CCW.
-    plaqs = [PlaquetteRule(
-        [(1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 0, 1)],
-        :square,
-    )]
+    plaqs = [PlaquetteRule([(1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 0, 1)], :square)]
     return UnitCell{2,Float64}([a1, a2], [[0.0, 0.0]], conns, plaqs)
 end
 
@@ -66,15 +63,19 @@ function get_unit_cell(::Type{Honeycomb})
     # and 3 B sites in the cells (0,0), (1,-1), (1,0), (1,0), (0,1),
     # (0,0). Verified geometrically: every edge has length 1 and the
     # centroid lands at (sqrt(3)/2, 0.5).
-    plaqs = [PlaquetteRule(
-        [(1, 0, 0),     # A(0,0)
-         (2, 1, -1),    # B(1,-1)
-         (1, 1, 0),     # A(1,0)
-         (2, 1, 0),     # B(1,0)
-         (1, 0, 1),     # A(0,1)
-         (2, 0, 0)],    # B(0,0)
-        :hexagon,
-    )]
+    plaqs = [
+        PlaquetteRule(
+            [
+                (1, 0, 0),     # A(0,0)
+                (2, 1, -1),    # B(1,-1)
+                (1, 1, 0),     # A(1,0)
+                (2, 1, 0),     # B(1,0)
+                (1, 0, 1),     # A(0,1)
+                (2, 0, 0),
+            ],    # B(0,0)
+            :hexagon,
+        ),
+    ]
     return UnitCell{2,Float64}([a1, a2], [d_A, d_B], conns, plaqs)
 end
 

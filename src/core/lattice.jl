@@ -297,10 +297,7 @@ function _materialise_plaquettes(lat::Lattice{Topo,T}) where {Topo,T}
                     valid = false
                     break
                 end
-                j = site_index(
-                    lat.indexing, (Lx, Ly), nsub,
-                    LatticeCoord{2}((nx, ny), s),
-                )
+                j = site_index(lat.indexing, (Lx, Ly), nsub, LatticeCoord{2}((nx, ny), s))
                 push!(vertices, j)
                 # Centroid uses the **unwrapped** corner position
                 # (relative to the anchor cell) so the centre of a
