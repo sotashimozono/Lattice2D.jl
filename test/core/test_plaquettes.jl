@@ -70,13 +70,31 @@
         @test all(counts .== 3)
     end
 
-    @testset "Kagome: 2 triangles per cell (hexagon not yet declared)" begin
+    @testset "Kagome: 3 plaquette kinds (up/down triangle + hexagon)" begin
         lat = build_lattice(Kagome, 6, 6)
-        @test num_elements(lat, PlaquetteCenter()) == 2 * 6 * 6
+        @test num_elements(lat, PlaquetteCenter()) == 3 * 6 * 6
         ps = collect(plaquettes(lat))
         @test count(p -> p.type === :up_triangle, ps) == 6 * 6
         @test count(p -> p.type === :down_triangle, ps) == 6 * 6
-        @test all(length(p.vertices) == 3 for p in ps)
+        @test count(p -> p.type === :hexagon, ps) == 6 * 6
+        @test count(length(p.vertices) == 3 for p in ps) == 2 * 6 * 6
+        @test count(length(p.vertices) == 6 for p in ps) == 6 * 6
+    end
+
+    @testset "Kagome hexagon: 6 unit edges, interior sample" begin
+        lat = build_lattice(Kagome, 8, 8; boundary=OpenAxis())
+        ps = collect(plaquettes(lat))
+        # Kagome sites are at half the Bravais spacing, so unit-cell
+        # NN distance is 0.5 (the hexagon edge length).
+        target = SVector(5.0, 3.0)
+        hex = first(
+            p for p in ps if p.type === :hexagon && norm(p.center - target) < 1.0
+        )
+        for i in 1:6
+            a = position(lat, hex.vertices[i])
+            b = position(lat, hex.vertices[mod1(i + 1, 6)])
+            @test norm(b - a) ≈ 0.5 atol = 1e-10
+        end
     end
 
     @testset "OBC drops plaquettes whose corners leave the sample" begin

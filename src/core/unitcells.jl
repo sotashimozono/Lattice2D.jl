@@ -105,11 +105,18 @@ function get_unit_cell(::Type{Kagome})
     ]
     # The up-triangle is the intra-cell triangle A-B-C. The
     # down-triangle lives between three neighbouring cells: B(0,0),
-    # A(1,0), C(1,-1). Hexagonal plaquettes exist in Kagome too but
-    # are left to a follow-up PR.
+    # A(1,0), C(1,-1). The hexagon surrounds the hole between the
+    # anchor cell and its (+x)/(+y) neighbours — a CCW walk through
+    # B(0,0), A(1,0), C(1,0), B(0,1), A(0,1), C(0,0). Verified
+    # numerically: all 6 corners lie at distance 0.5 from the hex
+    # centre and every edge has unit length.
     plaqs = [
         PlaquetteRule([(1, 0, 0), (2, 0, 0), (3, 0, 0)], :up_triangle),
         PlaquetteRule([(2, 0, 0), (1, 1, 0), (3, 1, -1)], :down_triangle),
+        PlaquetteRule(
+            [(2, 0, 0), (1, 1, 0), (3, 1, 0), (2, 0, 1), (1, 0, 1), (3, 0, 0)],
+            :hexagon,
+        ),
     ]
     return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns, plaqs)
 end

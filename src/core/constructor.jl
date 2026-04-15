@@ -67,3 +67,48 @@ Convenience alias for [`build_lattice`](@ref). Kept so that
 function Lattice(Topology::Type{<:AbstractTopology{2}}, Lx::Int, Ly::Int; kwargs...)
     return build_lattice(Topology, Lx, Ly; kwargs...)
 end
+
+"""
+    sublattice_layout(Topology, Lx, Ly, types; indexing = RowMajor())
+
+Convenience constructor for a [`SublatticeLayout`](@ref) that matches
+the geometric sublattice structure of an `Lx × Ly` lattice of the
+given `Topology`.
+
+`types` must be a tuple of `AbstractSiteType` values with length equal
+to the number of sublattices in the topology's unit cell; `types[k]`
+becomes the site type for every site in the `k`-th geometric
+sublattice.
+
+The `indexing` keyword must match whatever `indexing` will be passed
+to [`build_lattice`](@ref) — the layout's `sublattice_of` vector is
+computed via the chosen linearisation.
+
+# Example
+
+```julia
+# Honeycomb A / B with an Ising A sublattice and an XY B sublattice:
+layout = sublattice_layout(Honeycomb, 4, 4, (IsingSite(), XYSite()))
+lat = build_lattice(Honeycomb, 4, 4; layout = layout)
+```
+"""
+function sublattice_layout(
+    Topology::Type{<:AbstractTopology{2}},
+    Lx::Int,
+    Ly::Int,
+    types::Tuple{Vararg{AbstractSiteType}};
+    indexing::AbstractIndexing=RowMajor(),
+)
+    nsub = length(get_unit_cell(Topology).sublattice_positions)
+    length(types) == nsub || throw(
+        ArgumentError(
+            "topology $(Topology) has $nsub sublattices, got $(length(types)) site types",
+        ),
+    )
+    N = Lx * Ly * nsub
+    sub_ids = Vector{Int}(undef, N)
+    for i in 1:N
+        sub_ids[i] = lattice_coord(indexing, (Lx, Ly), nsub, i).sublattice
+    end
+    return SublatticeLayout(types, sub_ids)
+end
