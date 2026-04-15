@@ -110,6 +110,8 @@ import LatticeCore:
 include("core/topology.jl")
 include("core/unitcells.jl")
 include("core/lattice.jl")
+include("core/cache.jl")
+include("core/element_api.jl")
 include("core/constructor.jl")
 include("utils/iterator.jl")
 
