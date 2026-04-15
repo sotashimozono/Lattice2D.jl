@@ -143,7 +143,23 @@ function get_unit_cell(::Type{Lieb})
         Connection(2, 1, 1, 0, 1),     # B → next A (right)
         Connection(3, 1, 0, 1, 2),     # C → next A (up)
     ]
-    return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns)
+    # One plaquette per cell: the 2×2 square with 4 corner A's and 4
+    # edge sites (2 B's bottom/top, 2 C's left/right). CCW walk:
+    #   A(0,0) → B(0,0) → A(1,0) → C(1,0) → A(1,1) → B(0,1) → A(0,1) → C(0,0)
+    plaqs = [PlaquetteRule(
+        [
+            (1, 0, 0),   # A(0,0) — bottom-left corner
+            (2, 0, 0),   # B(0,0) — bottom edge
+            (1, 1, 0),   # A(1,0) — bottom-right corner
+            (3, 1, 0),   # C(1,0) — right edge
+            (1, 1, 1),   # A(1,1) — top-right corner
+            (2, 0, 1),   # B(0,1) — top edge
+            (1, 0, 1),   # A(0,1) — top-left corner
+            (3, 0, 0),   # C(0,0) — left edge
+        ],
+        :square,
+    )]
+    return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns, plaqs)
 end
 
 """
@@ -182,7 +198,34 @@ function get_unit_cell(::Type{ShastrySutherland})
         Connection(1, 4, 0, 0, 2),     # 1–4 (same cell diagonal)
         Connection(2, 3, 1, -1, 2),    # 2–3 (down-right diagonal)
     ]
-    return UnitCell{2,Float64}([a1, a2], [d_1, d_2, d_3, d_4], conns)
+    # Four small unit-squares per cell (the underlying square lattice
+    # has 2Lx × 2Ly sites on a 2×2 sublattice unit cell, so 4 small
+    # squares per cell). Each small square is walked CCW; the `type`
+    # tag distinguishes squares that contain an intra-cell J' dimer
+    # from those that don't.
+    #   P1 (bottom-left, contains the 1-4 dimer):
+    #     (0,0)-(1,0)-(1,1)-(0,1)  = sub 1,2,4,3
+    #   P2 (bottom-right, dimer-free):
+    #     (1,0)-(2,0)-(2,1)-(1,1)  = sub 2@(0,0), 1@(1,0), 3@(1,0), 4@(0,0)
+    #   P3 (top-left, dimer-free):
+    #     (0,1)-(1,1)-(1,2)-(0,2)  = sub 3@(0,0), 4@(0,0), 2@(0,1), 1@(0,1)
+    #   P4 (top-right, contains the 2-3 dimer under cell shift):
+    #     (1,1)-(2,1)-(2,2)-(1,2)  = sub 4@(0,0), 3@(1,0), 1@(1,1), 2@(0,1)
+    plaqs = [
+        PlaquetteRule(
+            [(1, 0, 0), (2, 0, 0), (4, 0, 0), (3, 0, 0)], :dimer_square
+        ),
+        PlaquetteRule(
+            [(2, 0, 0), (1, 1, 0), (3, 1, 0), (4, 0, 0)], :square
+        ),
+        PlaquetteRule(
+            [(3, 0, 0), (4, 0, 0), (2, 0, 1), (1, 0, 1)], :square
+        ),
+        PlaquetteRule(
+            [(4, 0, 0), (3, 1, 0), (1, 1, 1), (2, 0, 1)], :dimer_square
+        ),
+    ]
+    return UnitCell{2,Float64}([a1, a2], [d_1, d_2, d_3, d_4], conns, plaqs)
 end
 
 """
@@ -242,7 +285,19 @@ function get_unit_cell(::Type{UnionJack})
         Connection(1, 2, 0, -1, 1),    # A → B (down)
         Connection(1, 2, -1, -1, 1),   # A → B (down-left)
     ]
-    return UnitCell{2,Float64}([a1, a2], [d_A, d_B], conns)
+    # Four small triangles per cell, each sharing the body site B.
+    # The four corner A's are walked in CCW order around B(0,0):
+    #   T1 (south): A(0,0), A(1,0), B(0,0)
+    #   T2 (east) : A(1,0), A(1,1), B(0,0)
+    #   T3 (north): A(1,1), A(0,1), B(0,0)
+    #   T4 (west) : A(0,1), A(0,0), B(0,0)
+    plaqs = [
+        PlaquetteRule([(1, 0, 0), (1, 1, 0), (2, 0, 0)], :triangle_south),
+        PlaquetteRule([(1, 1, 0), (1, 1, 1), (2, 0, 0)], :triangle_east),
+        PlaquetteRule([(1, 1, 1), (1, 0, 1), (2, 0, 0)], :triangle_north),
+        PlaquetteRule([(1, 0, 1), (1, 0, 0), (2, 0, 0)], :triangle_west),
+    ]
+    return UnitCell{2,Float64}([a1, a2], [d_A, d_B], conns, plaqs)
 end
 
 """Tuple listing every topology shipped by Lattice2D."""
