@@ -87,9 +87,7 @@
         # Kagome sites are at half the Bravais spacing, so unit-cell
         # NN distance is 0.5 (the hexagon edge length).
         target = SVector(5.0, 3.0)
-        hex = first(
-            p for p in ps if p.type === :hexagon && norm(p.center - target) < 1.0
-        )
+        hex = first(p for p in ps if p.type === :hexagon && norm(p.center - target) < 1.0)
         for i in 1:6
             a = position(lat, hex.vertices[i])
             b = position(lat, hex.vertices[mod1(i + 1, 6)])

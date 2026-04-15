@@ -14,15 +14,12 @@
         end
 
         # Half the sites are A, half are B.
-        a_count = count(i -> site_type(site_layout(lat), i) isa IsingSite,
-                        1:num_sites(lat))
+        a_count = count(i -> site_type(site_layout(lat), i) isa IsingSite, 1:num_sites(lat))
         @test a_count == num_sites(lat) ÷ 2
     end
 
     @testset "Kagome: three distinct site types across sublattices" begin
-        layout = sublattice_layout(
-            Kagome, 3, 3, (IsingSite(), PottsSite(3), XYSite())
-        )
+        layout = sublattice_layout(Kagome, 3, 3, (IsingSite(), PottsSite(3), XYSite()))
         lat = build_lattice(Kagome, 3, 3; layout=layout)
 
         # Every site's site type matches its sublattice.
@@ -36,7 +33,9 @@
         # Equal counts per sublattice on a 3×3 sample.
         for k in 1:3
             @test count(
-                i -> sublattice(lat, i) == k && typeof(site_type(site_layout(lat), i)) === typeof(type_by_sub[k]),
+                i ->
+                    sublattice(lat, i) == k &&
+                    typeof(site_type(site_layout(lat), i)) === typeof(type_by_sub[k]),
                 1:num_sites(lat),
             ) == 9
         end
@@ -60,9 +59,7 @@
 
     @testset "Wrong arity throws ArgumentError" begin
         @test_throws ArgumentError sublattice_layout(Honeycomb, 3, 3, (IsingSite(),))
-        @test_throws ArgumentError sublattice_layout(
-            Kagome, 3, 3, (IsingSite(), XYSite())
-        )
+        @test_throws ArgumentError sublattice_layout(Kagome, 3, 3, (IsingSite(), XYSite()))
     end
 
     @testset "random_state on a mixed-spin Honeycomb layout" begin

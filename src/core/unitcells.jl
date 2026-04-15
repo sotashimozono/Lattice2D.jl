@@ -114,8 +114,7 @@ function get_unit_cell(::Type{Kagome})
         PlaquetteRule([(1, 0, 0), (2, 0, 0), (3, 0, 0)], :up_triangle),
         PlaquetteRule([(2, 0, 0), (1, 1, 0), (3, 1, -1)], :down_triangle),
         PlaquetteRule(
-            [(2, 0, 0), (1, 1, 0), (3, 1, 0), (2, 0, 1), (1, 0, 1), (3, 0, 0)],
-            :hexagon,
+            [(2, 0, 0), (1, 1, 0), (3, 1, 0), (2, 0, 1), (1, 0, 1), (3, 0, 0)], :hexagon
         ),
     ]
     return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns, plaqs)
