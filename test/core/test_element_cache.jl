@@ -5,7 +5,9 @@
         b1 = bonds(lat)
         b2 = bonds(lat)
         @test b1 === b2                                  # same Vector object
-        @test b1 == collect(b for i in 1:num_sites(lat) for b in neighbor_bonds(lat, i) if b.j > b.i)
+        @test b1 == collect(
+            b for i in 1:num_sites(lat) for b in neighbor_bonds(lat, i) if b.j > b.i
+        )
 
         p1 = plaquettes(lat)
         p2 = plaquettes(lat)
@@ -54,8 +56,10 @@
             b_self = bs[i]
             for k in nbrs
                 other = bs[k]
-                @test other.i == b_self.i || other.i == b_self.j ||
-                      other.j == b_self.i || other.j == b_self.j
+                @test other.i == b_self.i ||
+                    other.i == b_self.j ||
+                    other.j == b_self.i ||
+                    other.j == b_self.j
                 @test k != i
             end
             # Symmetry: j ∈ neighbors(i) ⇒ i ∈ neighbors(j).
