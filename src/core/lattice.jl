@@ -7,11 +7,18 @@ sample, with a `LatticeCore.LatticeBoundary` defining per-axis
 boundary conditions. Subtype of `LatticeCore.AbstractLattice{2, T}`.
 
 The struct stores only the parameters that define the lattice; all
-geometric and connectivity data (`position`, `sublattice`, `neighbors`,
-`bonds`, ...) are derived on demand from the `topology` type parameter
-and the `LatticeCore` interface (`lattice_coord`, `apply_axis_bc`,
-`to_real`). This mirrors the reference `SimpleSquareLattice` in
-LatticeCore and keeps the type lightweight.
+pure-function-of-input data (`position`, `sublattice`, `neighbors`,
+`basis_vectors`, ...) are derived on demand through the LatticeCore
+interface (`lattice_coord`, `apply_axis_bc`, `to_real`). This mirrors
+the reference `SimpleSquareLattice` in LatticeCore and keeps the type
+lightweight.
+
+Boundary-condition-dependent aggregates that appear repeatedly
+(`bonds`, `plaquettes`, the bond and plaquette reverse-lookup tables)
+are memoised through a lazy `cache` field — populated on first access
+by [`_get_cache`](@ref) and then reused by the O(local) element-center
+and incidence overrides. The cache is stored in a `Ref` so the struct
+itself remains immutable.
 
 Type parameters
 
@@ -35,6 +42,11 @@ struct Lattice{
     boundary::B
     indexing::I
     layout::L
+    # Lazy cache for bonds / plaquettes / reverse-lookup tables.
+    # Stored as Ref{Any} because `LatticeCache{T}` isn't defined at
+    # this include point; the getter `_get_cache(lat)` re-asserts the
+    # concrete type. See `core/cache.jl`.
+    cache::Base.RefValue{Any}
 end
 
 # ---- Internal helpers -----------------------------------------------
@@ -253,21 +265,11 @@ function LatticeCore.neighbor_bonds(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
     return out
 end
 
-function LatticeCore.bonds(lat::Lattice)
-    return (b for i in 1:num_sites(lat) for b in neighbor_bonds(lat, i) if b.j > b.i)
-end
-
-# ---- Plaquette enumeration ------------------------------------------
-#
-# Walks `(cell_x, cell_y, kind)` for every PlaquetteRule declared on
-# the topology, applies per-axis BCs to each corner, drops any
-# plaquette whose corners aren't all valid, and materialises the
-# result as a `Plaquette{2, T}` with its boundary vertex indices,
-# centroid and type tag.
-
-function LatticeCore.plaquettes(lat::Lattice{Topo,T}) where {Topo,T}
-    return _materialise_plaquettes(lat)
-end
+# `bonds(lat)` and `plaquettes(lat)` for `Lattice` live in
+# `core/element_api.jl` where they pull from the lazy
+# [`LatticeCache`](@ref) built by [`_get_cache`](@ref). The
+# underlying materialiser for plaquettes stays here because the
+# cache builder needs it in its include-order position.
 
 function _materialise_plaquettes(lat::Lattice{Topo,T}) where {Topo,T}
     Lx, Ly = _dims(lat)
@@ -317,35 +319,9 @@ function _materialise_plaquettes(lat::Lattice{Topo,T}) where {Topo,T}
     return out
 end
 
-# Override `num_elements(::PlaquetteCenter)` so we never materialise
-# the whole list just to count — O(Lx*Ly) scan that skips rejected
-# corners by BC.
-function LatticeCore.num_elements(lat::Lattice{Topo}, ::PlaquetteCenter) where {Topo}
-    Lx, Ly = _dims(lat)
-    uc = get_unit_cell(Topo)
-    isempty(uc.plaquettes) && return 0
-    bx, by = lat.boundary.axes
-    count = 0
-    for cy in 1:Ly, cx in 1:Lx
-        for rule in uc.plaquettes
-            all_valid = true
-            for (_, dx, dy) in rule.corners
-                _, ok_x = apply_axis_bc(bx, cx + dx, Lx)
-                if !ok_x
-                    all_valid = false
-                    break
-                end
-                _, ok_y = apply_axis_bc(by, cy + dy, Ly)
-                if !ok_y
-                    all_valid = false
-                    break
-                end
-            end
-            all_valid && (count += 1)
-        end
-    end
-    return count
-end
+# `num_elements(::Lattice, ::PlaquetteCenter)` and the rest of the
+# element-center / incidence API for `Lattice` live in
+# `core/element_api.jl`, powered by the cached plaquette vector.
 
 # ---- Graph / topology traits ----------------------------------------
 
