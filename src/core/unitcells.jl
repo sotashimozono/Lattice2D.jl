@@ -10,7 +10,9 @@ function get_unit_cell(::Type{Square})
     a1 = [1.0, 0.0]
     a2 = [0.0, 1.0]
     conns = [Connection(1, 1, 1, 0, 1), Connection(1, 1, 0, 1, 2)]
-    return UnitCell{2,Float64}([a1, a2], [[0.0, 0.0]], conns)
+    # Unit square with corners at (0,0), (1,0), (1,1), (0,1), walked CCW.
+    plaqs = [PlaquetteRule([(1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 0, 1)], :square)]
+    return UnitCell{2,Float64}([a1, a2], [[0.0, 0.0]], conns, plaqs)
 end
 
 """
@@ -29,7 +31,14 @@ function get_unit_cell(::Type{Triangular})
         Connection(1, 1, 0, 1, 2),    # up (a2)
         Connection(1, 1, -1, 1, 3),   # upper-left (a2 − a1)
     ]
-    return UnitCell{2,Float64}([a1, a2], [[0.0, 0.0]], conns)
+    # Two triangles per unit cell:
+    #   up-triangle   : (0,0), (1,0), (0,1)       — points up-right
+    #   down-triangle : (1,0), (1,1), (0,1)       — points down-left
+    plaqs = [
+        PlaquetteRule([(1, 0, 0), (1, 1, 0), (1, 0, 1)], :up_triangle),
+        PlaquetteRule([(1, 1, 0), (1, 1, 1), (1, 0, 1)], :down_triangle),
+    ]
+    return UnitCell{2,Float64}([a1, a2], [[0.0, 0.0]], conns, plaqs)
 end
 
 """
@@ -50,7 +59,24 @@ function get_unit_cell(::Type{Honeycomb})
         Connection(1, 2, 1, -1, 2),    # A → B (upper-left cell)
         Connection(1, 2, 0, -1, 3),    # A → B (upper cell)
     ]
-    return UnitCell{2,Float64}([a1, a2], [d_A, d_B], conns)
+    # Hexagon anchored at A(0,0), walking CCW. The 6 corners are 3 A
+    # and 3 B sites in the cells (0,0), (1,-1), (1,0), (1,0), (0,1),
+    # (0,0). Verified geometrically: every edge has length 1 and the
+    # centroid lands at (sqrt(3)/2, 0.5).
+    plaqs = [
+        PlaquetteRule(
+            [
+                (1, 0, 0),     # A(0,0)
+                (2, 1, -1),    # B(1,-1)
+                (1, 1, 0),     # A(1,0)
+                (2, 1, 0),     # B(1,0)
+                (1, 0, 1),     # A(0,1)
+                (2, 0, 0),
+            ],    # B(0,0)
+            :hexagon,
+        ),
+    ]
+    return UnitCell{2,Float64}([a1, a2], [d_A, d_B], conns, plaqs)
 end
 
 """
@@ -77,7 +103,15 @@ function get_unit_cell(::Type{Kagome})
         Connection(3, 1, 0, 1, 1),     # C → next A (up)
         Connection(2, 3, 1, -1, 1),    # B → next C (down-right)
     ]
-    return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns)
+    # The up-triangle is the intra-cell triangle A-B-C. The
+    # down-triangle lives between three neighbouring cells: B(0,0),
+    # A(1,0), C(1,-1). Hexagonal plaquettes exist in Kagome too but
+    # are left to a follow-up PR.
+    plaqs = [
+        PlaquetteRule([(1, 0, 0), (2, 0, 0), (3, 0, 0)], :up_triangle),
+        PlaquetteRule([(2, 0, 0), (1, 1, 0), (3, 1, -1)], :down_triangle),
+    ]
+    return UnitCell{2,Float64}([a1, a2], [d_A, d_B, d_C], conns, plaqs)
 end
 
 """

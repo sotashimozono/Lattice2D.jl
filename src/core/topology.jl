@@ -55,6 +55,10 @@ with an arbitrary basis. Contains
   geometric sublattice inside the unit cell
 - `connections::Vector{Connection}` — the full list of
   intra- and inter-cell connection rules for this topology
+- `plaquettes::Vector{LatticeCore.PlaquetteRule}` — declarative list
+  of plaquette rules (one per plaquette **kind**) anchored at the
+  reference cell. Empty for topologies that haven't been wired up to
+  the plaquette API yet.
 
 Produced by [`get_unit_cell`](@ref) on an `AbstractTopology`
 singleton.
@@ -63,6 +67,18 @@ struct UnitCell{D,T}
     basis::Vector{Vector{T}}
     sublattice_positions::Vector{Vector{T}}
     connections::Vector{Connection}
+    plaquettes::Vector{PlaquetteRule}
+end
+
+# Back-compat 3-arg constructor — legacy unit cells without any
+# declared plaquettes still work, they just contribute 0 plaquettes
+# to their lattice.
+function UnitCell{D,T}(
+    basis::Vector{Vector{T}},
+    sublattice_positions::Vector{Vector{T}},
+    connections::Vector{Connection},
+) where {D,T}
+    return UnitCell{D,T}(basis, sublattice_positions, connections, PlaquetteRule[])
 end
 
 """
