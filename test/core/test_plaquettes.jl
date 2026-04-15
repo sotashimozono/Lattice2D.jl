@@ -189,11 +189,14 @@
         end
     end
 
-    @testset "Dice still has no plaquette rules declared" begin
-        # Dice (T3) rhombus plaquettes are left for a follow-up PR.
+    @testset "Dice: 3 rhombi per cell" begin
+        # As of Iter 6 Dice declares three rhombus plaquettes per
+        # unit cell (:rhombus_east / :rhombus_northeast /
+        # :rhombus_northwest). Full coverage lives in
+        # test_dice_and_bond_type.jl.
         lat = build_lattice(Dice, 3, 3)
-        @test num_elements(lat, PlaquetteCenter()) == 0
-        @test isempty(collect(plaquettes(lat)))
+        @test num_elements(lat, PlaquetteCenter()) == 3 * 3 * 3
+        @test !isempty(collect(plaquettes(lat)))
     end
 
     @testset "PlaquetteCenter delegates to plaquettes via element_position" begin

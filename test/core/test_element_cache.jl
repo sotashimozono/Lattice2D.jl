@@ -23,13 +23,11 @@
             (Lieb, 1),
             (ShastrySutherland, 4),
             (UnionJack, 4),
+            (Dice, 3),
         )
             lat = build_lattice(Topo, 4, 4)
             @test num_elements(lat, PlaquetteCenter()) == per_cell * 16
         end
-
-        # Dice still has no rules → empty cache bucket → 0.
-        @test num_elements(build_lattice(Dice, 3, 3), PlaquetteCenter()) == 0
     end
 
     @testset "element_position(BondCenter) O(1) matches bond_center" begin

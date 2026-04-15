@@ -122,6 +122,7 @@ export AbstractTopology, Connection, UnitCell, get_unit_cell
 export Lattice
 export build_lattice
 export sublattice_layout
+export num_bonds, num_plaquettes, bond_type
 export AVAILABLE_LATTICES
 export Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
 
