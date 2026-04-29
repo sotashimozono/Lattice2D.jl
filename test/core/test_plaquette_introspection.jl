@@ -1,7 +1,8 @@
 @testset "plaquette introspection helpers" begin
     @testset "get_plaquette_rules ↔ get_unit_cell.plaquettes" begin
-        for Topo in (Square, Triangular, Honeycomb, Kagome, Lieb,
-                     ShastrySutherland, Dice, UnionJack)
+        for Topo in (
+            Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
+        )
             rules = get_plaquette_rules(Topo)
             uc_rules = get_unit_cell(Topo).plaquettes
             @test rules isa Vector{PlaquetteRule}
@@ -37,9 +38,7 @@
 
         # plaquettes default
         uc_kw_default = UnitCell{2,Float64}(;
-            basis=[a1, a2],
-            sublattice_positions=[[0.0, 0.0]],
-            connections=conns,
+            basis=[a1, a2], sublattice_positions=[[0.0, 0.0]], connections=conns
         )
         @test uc_kw_default.plaquettes == PlaquetteRule[]
     end
