@@ -54,16 +54,37 @@ end
 
 @inline _dims(lat::Lattice) = (lat.Lx, lat.Ly)
 
-@inline function _basis_sv(::Type{<:Lattice{Topo,T}}) where {Topo,T}
+# Type-level memoization for unit-cell-derived geometric data. Keyed
+# by the `Lattice{Topo,T}` *type* (not instance) — values are pure
+# functions of `(Topo, T)`, so the cache is sound for the lifetime of
+# the session. Built once per `(Topo, T)` pair and reused on every
+# `_basis_sv` / `_sub_offsets` call so hot paths
+# (`_connection_steps_kernel`, `_neighbors_by_shell_kernel`,
+# `_materialise_plaquettes_kernel`, `to_real`, `basis_vectors`) avoid
+# repeated `get_unit_cell` → `SVector` materialisation. See issue #46.
+const _BASIS_SV_CACHE = IdDict{DataType,Any}()
+const _SUB_OFFSETS_CACHE = IdDict{DataType,Any}()
+
+@inline function _basis_sv(::Type{L}) where {Topo,T,L<:Lattice{Topo,T}}
+    K = Lattice{Topo,T}
+    cached = get(_BASIS_SV_CACHE, K, nothing)
+    cached === nothing || return cached::Tuple{SVector{2,T},SVector{2,T}}
     uc = get_unit_cell(Topo)
     a1 = SVector{2,T}(T(uc.basis[1][1]), T(uc.basis[1][2]))
     a2 = SVector{2,T}(T(uc.basis[2][1]), T(uc.basis[2][2]))
-    return a1, a2
+    val = (a1, a2)
+    _BASIS_SV_CACHE[K] = val
+    return val
 end
 
-@inline function _sub_offsets(::Type{<:Lattice{Topo,T}}) where {Topo,T}
+@inline function _sub_offsets(::Type{L}) where {Topo,T,L<:Lattice{Topo,T}}
+    K = Lattice{Topo,T}
+    cached = get(_SUB_OFFSETS_CACHE, K, nothing)
+    cached === nothing || return cached::Vector{SVector{2,T}}
     uc = get_unit_cell(Topo)
-    return [SVector{2,T}(T(p[1]), T(p[2])) for p in uc.sublattice_positions]
+    val = SVector{2,T}[SVector{2,T}(T(p[1]), T(p[2])) for p in uc.sublattice_positions]
+    _SUB_OFFSETS_CACHE[K] = val
+    return val
 end
 
 # ---- LatticeCore required interface ---------------------------------
@@ -243,9 +264,24 @@ function LatticeCore.neighbors(lat::Lattice, i::Int; shell::Union{Nothing,Int}=n
     end
 end
 
-# Compute geometric k-th shell neighbours by scanning a full
-# `(−Lx, Lx) × (−Ly, Ly)` window of unit-cell displacements, filtering
-# candidates through the axis BCs and ranking unique distances.
+# Per-axis window radius for the geometric shell search. Combines two
+# upper bounds:
+#   * a topology-agnostic shell bound `2k+3` (k-th shell of any
+#     supported Bravais topology fits inside `(2k+1)²` cells; +2 pad)
+#   * the BC-imposed reach: `L−1` for OBC, `L÷2` for periodic axes
+# Returns the *smaller* of the two — anything beyond is either
+# unreachable or has a closer minimum-image representative already in
+# the window.
+@inline function _shell_window(ax, L::Int, k::Int)
+    bc_bound = ax isa OpenAxis ? (L - 1) : (L ÷ 2)
+    shell_bound = 2k + 3
+    return max(0, min(bc_bound, shell_bound))
+end
+
+# Compute geometric k-th shell neighbours by scanning a bounded
+# `(−rx, rx) × (−ry, ry)` window of unit-cell displacements (see
+# `_shell_window`), filtering candidates through the axis BCs and
+# ranking unique distances. Issue #47.
 function _neighbors_by_shell(lat::Lattice{Topo,T}, i::Int, k::Int) where {Topo,T}
     bx, by = lat.boundary.axes
     return _neighbors_by_shell_kernel(
@@ -267,7 +303,25 @@ function _neighbors_by_shell_kernel(
     # site j from site i across all unwrapped (dx, dy, sub') candidates.
     dist_map = Dict{Int,T}()
 
-    for dy in (-(Ly - 1)):(Ly - 1), dx in (-(Lx - 1)):(Lx - 1), s in 1:nsub
+    # Restrict the unwrapped-displacement window: the original code
+    # scans the full `(−(L−1), L−1)` rectangle in both axes, which is
+    # `O(Lx · Ly)` per site and dominates `_neighbors_by_shell` on
+    # large samples (issue #47). Two observations:
+    #   * Under PBC, any reachable neighbour has a minimum-image
+    #     representative with `|d| ≤ L÷2` per axis.
+    #   * Under OBC, an axis displacement larger than `L−1` is
+    #     unreachable anyway.
+    # On top of that, the `k`-th shell of a 2D Bravais lattice with
+    # well-conditioned basis is always within `2k+1` cells in each
+    # direction (the connection set generates the shell ranking, so
+    # `k` shells fit inside a `(2k+1)×(2k+1)` window for any
+    # supported topology — Square / Triangular / Honeycomb / Kagome /
+    # Lieb / ShastrySutherland / Dice / UnionJack). We pad to
+    # `2k+3` for headroom against float ties at the ring boundary.
+    rx = _shell_window(bx, Lx, k)
+    ry = _shell_window(by, Ly, k)
+
+    for dy in (-ry):ry, dx in (-rx):rx, s in 1:nsub
         tx = cx + dx
         ty = cy + dy
         nx, ok_x = apply_axis_bc(bx, tx, Lx)
