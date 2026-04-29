@@ -1,5 +1,5 @@
 """
-    Lattice{Topo, T, B, I, L}
+    Lattice{Topo, T}
 
 Finite 2D lattice obtained by tiling a unit cell (described by
 [`get_unit_cell`](@ref) on a topology singleton) over an `Lx × Ly`
@@ -17,31 +17,32 @@ Boundary-condition-dependent aggregates that appear repeatedly
 (`bonds`, `plaquettes`, the bond and plaquette reverse-lookup tables)
 are memoised through a lazy `cache` field — populated on first access
 by [`_get_cache`](@ref) and then reused by the O(local) element-center
-and incidence overrides. The cache is stored in a `Ref` so the struct
-itself remains immutable.
+and incidence overrides.
 
 Type parameters
 
 - `Topo<:AbstractTopology{2}` — topology singleton
 - `T<:AbstractFloat` — numeric type for positions
-- `B<:LatticeCore.LatticeBoundary` — composite boundary condition
-- `I<:LatticeCore.AbstractIndexing` — linearisation strategy
-- `L<:LatticeCore.AbstractSiteLayout` — site-type layout
+
+The boundary, indexing, and layout are stored as **fields** with
+abstract eltypes (`LatticeBoundary`, `AbstractIndexing`,
+`AbstractSiteLayout`). Hot paths that depend on the concrete types of
+these fields (`_connection_steps`, `_neighbors_by_shell`,
+`_materialise_plaquettes`) use a function-barrier pattern: they
+extract the fields and immediately forward to a specialised kernel,
+so the JIT specialises on the runtime types and the inner loops stay
+type-stable. This trades 5 type parameters for 2 to cut dispatch /
+compile-time cost without measurable hot-path regression. See issue
+#48 for context.
 
 Prefer constructing via [`build_lattice`](@ref).
 """
-struct Lattice{
-    Topo<:AbstractTopology{2},
-    T<:AbstractFloat,
-    B<:LatticeBoundary,
-    I<:AbstractIndexing,
-    L<:AbstractSiteLayout,
-} <: AbstractLattice{2,T}
+struct Lattice{Topo<:AbstractTopology{2},T<:AbstractFloat} <: AbstractLattice{2,T}
     Lx::Int
     Ly::Int
-    boundary::B
-    indexing::I
-    layout::L
+    boundary::LatticeBoundary
+    indexing::AbstractIndexing
+    layout::AbstractSiteLayout
     # Lazy cache for bonds / plaquettes / reverse-lookup tables.
     # Stored as Ref{Any} because `LatticeCache{T}` isn't defined at
     # this include point; the getter `_get_cache(lat)` re-asserts the
@@ -53,14 +54,14 @@ end
 
 @inline _dims(lat::Lattice) = (lat.Lx, lat.Ly)
 
-@inline function _basis_sv(::Type{Lattice{Topo,T,B,I,L}}) where {Topo,T,B,I,L}
+@inline function _basis_sv(::Type{<:Lattice{Topo,T}}) where {Topo,T}
     uc = get_unit_cell(Topo)
     a1 = SVector{2,T}(T(uc.basis[1][1]), T(uc.basis[1][2]))
     a2 = SVector{2,T}(T(uc.basis[2][1]), T(uc.basis[2][2]))
     return a1, a2
 end
 
-@inline function _sub_offsets(::Type{Lattice{Topo,T,B,I,L}}) where {Topo,T,B,I,L}
+@inline function _sub_offsets(::Type{<:Lattice{Topo,T}}) where {Topo,T}
     uc = get_unit_cell(Topo)
     return [SVector{2,T}(T(p[1]), T(p[2])) for p in uc.sublattice_positions]
 end
@@ -140,16 +141,26 @@ const _CONN_TYPE_SYMBOLS = IdDict{DataType,Vector{Symbol}}()
 end
 
 function _connection_steps(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
-    Lx, Ly = _dims(lat)
-    nsub = num_sublattices(lat)
-    coord = lattice_coord(lat.indexing, (Lx, Ly), nsub, i)
+    # Function barrier: forward to a kernel that captures the runtime
+    # types of `boundary.axes` / `indexing` so the inner loops type-
+    # specialise even though those fields are abstract on `Lattice`
+    # (issue #48 — Lattice has 2 type params; B/I/L are field-only).
+    bx, by = lat.boundary.axes
+    return _connection_steps_kernel(
+        Topo, T, lat.Lx, lat.Ly, num_sublattices(lat), lat.indexing, bx, by, i
+    )
+end
+
+function _connection_steps_kernel(
+    ::Type{Topo}, ::Type{T}, Lx::Int, Ly::Int, nsub::Int, indexing, bx, by, i::Int
+) where {Topo,T}
+    coord = lattice_coord(indexing, (Lx, Ly), nsub, i)
     cx, cy = coord.cell
     s = coord.sublattice
 
     uc = get_unit_cell(Topo)
-    bx, by = lat.boundary.axes
-    a1, a2 = _basis_sv(typeof(lat))
-    subs = _sub_offsets(typeof(lat))
+    a1, a2 = _basis_sv(Lattice{Topo,T})
+    subs = _sub_offsets(Lattice{Topo,T})
     type_syms = _conn_type_symbols(Topo)
 
     steps = Step{T}[]
@@ -163,7 +174,7 @@ function _connection_steps(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
                 ny, ok_y = apply_axis_bc(by, ty, Ly)
                 if ok_y
                     j = site_index(
-                        lat.indexing,
+                        indexing,
                         (Lx, Ly),
                         nsub,
                         LatticeCoord{2}((nx, ny), conn.dst_sub),
@@ -184,7 +195,7 @@ function _connection_steps(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
                 ny, ok_y = apply_axis_bc(by, ty, Ly)
                 if ok_y
                     j = site_index(
-                        lat.indexing,
+                        indexing,
                         (Lx, Ly),
                         nsub,
                         LatticeCoord{2}((nx, ny), conn.src_sub),
@@ -242,15 +253,21 @@ end
 # `(−Lx, Lx) × (−Ly, Ly)` window of unit-cell displacements, filtering
 # candidates through the axis BCs and ranking unique distances.
 function _neighbors_by_shell(lat::Lattice{Topo,T}, i::Int, k::Int) where {Topo,T}
-    Lx, Ly = _dims(lat)
-    nsub = num_sublattices(lat)
-    coord_i = lattice_coord(lat.indexing, (Lx, Ly), nsub, i)
+    bx, by = lat.boundary.axes
+    return _neighbors_by_shell_kernel(
+        Topo, T, lat.Lx, lat.Ly, num_sublattices(lat), lat.indexing, bx, by, i, k
+    )
+end
+
+function _neighbors_by_shell_kernel(
+    ::Type{Topo}, ::Type{T}, Lx::Int, Ly::Int, nsub::Int, indexing, bx, by, i::Int, k::Int
+) where {Topo,T}
+    coord_i = lattice_coord(indexing, (Lx, Ly), nsub, i)
     cx, cy = coord_i.cell
     si = coord_i.sublattice
 
-    bx, by = lat.boundary.axes
-    a1, a2 = _basis_sv(typeof(lat))
-    subs = _sub_offsets(typeof(lat))
+    a1, a2 = _basis_sv(Lattice{Topo,T})
+    subs = _sub_offsets(Lattice{Topo,T})
 
     # `dist_map[j]` is the minimum distance at which we've reached
     # site j from site i across all unwrapped (dx, dy, sub') candidates.
@@ -263,7 +280,7 @@ function _neighbors_by_shell(lat::Lattice{Topo,T}, i::Int, k::Int) where {Topo,T
         ok_x || continue
         ny, ok_y = apply_axis_bc(by, ty, Ly)
         ok_y || continue
-        j = site_index(lat.indexing, (Lx, Ly), nsub, LatticeCoord{2}((nx, ny), s))
+        j = site_index(indexing, (Lx, Ly), nsub, LatticeCoord{2}((nx, ny), s))
         j == i && continue
         d_vec = dx * a1 + dy * a2 + (subs[s] - subs[si])
         d = norm(d_vec)
@@ -318,12 +335,18 @@ end
 # cache builder needs it in its include-order position.
 
 function _materialise_plaquettes(lat::Lattice{Topo,T}) where {Topo,T}
-    Lx, Ly = _dims(lat)
-    nsub = num_sublattices(lat)
-    uc = get_unit_cell(Topo)
     bx, by = lat.boundary.axes
-    a1, a2 = _basis_sv(typeof(lat))
-    subs = _sub_offsets(typeof(lat))
+    return _materialise_plaquettes_kernel(
+        Topo, T, lat.Lx, lat.Ly, num_sublattices(lat), lat.indexing, bx, by
+    )
+end
+
+function _materialise_plaquettes_kernel(
+    ::Type{Topo}, ::Type{T}, Lx::Int, Ly::Int, nsub::Int, indexing, bx, by
+) where {Topo,T}
+    uc = get_unit_cell(Topo)
+    a1, a2 = _basis_sv(Lattice{Topo,T})
+    subs = _sub_offsets(Lattice{Topo,T})
 
     out = Plaquette{2,T}[]
     isempty(uc.plaquettes) && return out
@@ -345,7 +368,7 @@ function _materialise_plaquettes(lat::Lattice{Topo,T}) where {Topo,T}
                     valid = false
                     break
                 end
-                j = site_index(lat.indexing, (Lx, Ly), nsub, LatticeCoord{2}((nx, ny), s))
+                j = site_index(indexing, (Lx, Ly), nsub, LatticeCoord{2}((nx, ny), s))
                 push!(vertices, j)
                 # Centroid uses the **unwrapped** corner position
                 # (relative to the anchor cell) so the centre of a
