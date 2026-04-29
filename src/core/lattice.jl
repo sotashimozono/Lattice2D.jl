@@ -514,3 +514,64 @@ function LatticeCore.to_real(lat::Lattice{Topo,T}, coord::LatticeCoord{2}) where
     subs = _sub_offsets(typeof(lat))
     return RealSpace{2,T}((cx - 1) * a1 + (cy - 1) * a2 + subs[s])
 end
+
+"""
+    to_lattice(lat::Lattice, coord::RealSpace) → LatticeCoord{2}
+
+Inverse of [`to_real`](@ref): map a real-space point back to the
+nearest [`LatticeCoord`](@ref) on `lat`. The implementation inverts
+the basis matrix `A = [a1 a2]` once per call (`SMatrix{2,2}`, so the
+inverse is non-allocating), subtracts each candidate sublattice
+offset, and picks the `(cell, sublattice)` triple whose rounded cell
+indices reproduce `coord` with the smallest residual.
+
+For periodic axes the rounded cell is wrapped into `1:Lx` / `1:Ly`
+through `mod1`, so points that lie outside the fundamental domain
+still resolve to a valid in-sample site. For open axes the rounded
+cell is returned as-is even when it falls outside `1:L`; callers that
+need an in-sample guarantee should validate the result against
+`(Lx, Ly)`.
+
+Together with [`to_real`](@ref) this satisfies
+`to_lattice(lat, to_real(lat, c)) == c` for every in-sample
+`LatticeCoord` and every shipped topology.
+"""
+function LatticeCore.to_lattice(lat::Lattice{Topo,T}, coord::RealSpace{2}) where {Topo,T}
+    a1, a2 = _basis_sv(typeof(lat))
+    subs = _sub_offsets(typeof(lat))
+    A = SMatrix{2,2,T}(a1[1], a1[2], a2[1], a2[2])
+    Ainv = inv(A)
+    bx, by = lat.boundary.axes
+
+    best_s = 1
+    best_cell = (1, 1)
+    best_resid = typemax(T)
+    @inbounds for s in eachindex(subs)
+        frac = Ainv * (coord.x - subs[s])
+        # `frac` holds (cx-1, cy-1) in continuous units. Round to the
+        # nearest integer cell, then shift back to 1-based indexing.
+        rx = round(Int, frac[1]) + 1
+        ry = round(Int, frac[2]) + 1
+        # Apply periodic wrap before measuring the residual so that a
+        # point sitting on the +Lx boundary of a PBC sample resolves
+        # to cell 1 instead of cell `Lx + 1`.
+        cx = bx isa OpenAxis ? rx : mod1(rx, lat.Lx)
+        cy = by isa OpenAxis ? ry : mod1(ry, lat.Ly)
+        # The residual we minimise is the in-cell offset between
+        # `coord` and the nearest representative of sublattice `s`.
+        # `frac - round(frac)` gives that offset in lattice-vector
+        # units; multiply by `A` to recover real-space distance, which
+        # makes the comparison invariant under non-orthogonal / scaled
+        # bases. Using the *unwrapped* round avoids paying for the
+        # PBC wrap in the metric — the wrapped cell is only used for
+        # the returned LatticeCoord.
+        offset = SVector{2,T}(frac[1] - (rx - 1), frac[2] - (ry - 1))
+        resid = norm(A * offset)
+        if resid < best_resid
+            best_resid = resid
+            best_s = s
+            best_cell = (cx, cy)
+        end
+    end
+    return LatticeCoord{2}(best_cell, best_s)
+end
