@@ -11,6 +11,31 @@ call. Include order-wise this file has to come after `lattice.jl`
 The overrides here replace LatticeCore's correctness-only O(N)
 defaults — the lattice still implements the same contract, callers
 just stop paying O(num_bonds) per element-position lookup.
+
+## Naming convention: element-API vs. Lattice2D helpers
+
+Two coexisting query styles are exposed for bonds and plaquettes:
+
+* **Generic, LatticeCore-owned element API** —
+  `num_elements(lat, BondCenter())`, `element_position(lat, BondCenter(), i)`,
+  `elements(lat, BondCenter())`, `incident(lat, BondCenter(), VertexCenter(), i)`,
+  and so on. These are uniform across centring kinds (`VertexCenter`,
+  `BondCenter`, `PlaquetteCenter`, …) and are what generic algorithms
+  written against the `AbstractLattice` interface should call.
+
+* **Lattice2D-local convenience helpers** — `num_bonds(lat)`,
+  `num_plaquettes(lat)`, `bond_type(lat, i, j)`. These are thin,
+  human-friendly aliases over the element-API methods above; they are
+  exported by `Lattice2D` (not `LatticeCore`) and exist so that
+  hand-written code at the Lattice2D layer can read naturally
+  (`num_bonds(lat)` reads better than
+  `num_elements(lat, BondCenter())` at a call site that only ever
+  cares about bonds).
+
+The two never disagree by construction (`num_bonds` literally calls
+`num_elements(lat, BondCenter())`). A future refactor may move the
+helpers under a sub-namespace to make the distinction more explicit;
+that change is breaking and tracked separately.
 """
 
 # ---- Bond and plaquette enumeration through the cache --------------

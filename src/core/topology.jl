@@ -82,12 +82,65 @@ function UnitCell{D,T}(
 end
 
 """
+    UnitCell{D, T}(; basis, sublattice_positions, connections, plaquettes = PlaquetteRule[])
+
+Keyword-argument constructor for [`UnitCell`](@ref). Equivalent to the
+positional `UnitCell{D, T}(basis, sublattice_positions, connections, plaquettes)`,
+but lets call sites label each argument explicitly and omit
+`plaquettes` for topologies that don't (yet) declare any.
+
+The 3-positional and 4-positional forms remain available unchanged.
+"""
+function UnitCell{D,T}(;
+    basis::Vector{Vector{T}},
+    sublattice_positions::Vector{Vector{T}},
+    connections::Vector{Connection},
+    plaquettes::Vector{PlaquetteRule}=PlaquetteRule[],
+) where {D,T}
+    return UnitCell{D,T}(basis, sublattice_positions, connections, plaquettes)
+end
+
+"""
     get_unit_cell(::Type{T}) where {T <: AbstractTopology}
 
 Return the [`UnitCell`](@ref) describing topology `T`. Concrete
 topology types (`Square`, `Triangular`, ...) specialise this
 method. The fallback throws.
+
+See also [`get_plaquette_rules`](@ref) for plaquette-only
+introspection.
 """
 function get_unit_cell(::Type{T}) where {T<:AbstractTopology}
     return error("UnitCell not defined for $T")
+end
+
+"""
+    get_plaquette_rules(::Type{T}) where {T <: AbstractTopology}
+        → Vector{PlaquetteRule}
+
+Introspection helper that returns the list of [`PlaquetteRule`](@ref)
+templates declared in topology `T`'s unit cell. Equivalent to
+`get_unit_cell(T).plaquettes`, but communicates intent ("I only want
+the plaquette rules, not the full unit cell") and returns an empty
+`Vector{PlaquetteRule}` for topologies that haven't been wired up to
+the plaquette API yet.
+
+Each `PlaquetteRule` is a *template* on the unit cell: its `corners`
+are `(sublattice, dx, dy)` tuples relative to the reference cell, its
+`type` tags the plaquette kind (e.g. `:square`, `:up_triangle`), and
+`build_lattice` instantiates them into concrete `Plaquette` objects on
+the finite sample. The complementary count on the instantiated lattice
+is [`num_plaquettes`](@ref).
+
+# Example
+
+```julia
+julia> rules = get_plaquette_rules(Square);
+
+julia> length(rules), rules[1].type
+(1, :square)
+```
+"""
+function get_plaquette_rules(::Type{T}) where {T<:AbstractTopology}
+    return get_unit_cell(T).plaquettes
 end

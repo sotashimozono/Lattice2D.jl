@@ -107,6 +107,7 @@ import LatticeCore:
 
 # ---- Lattice2D source files -----------------------------------------
 
+include("utils/edge_key.jl")
 include("core/topology.jl")
 include("core/unitcells.jl")
 include("core/lattice.jl")
@@ -118,7 +119,7 @@ include("utils/iterator.jl")
 # ---- Exports --------------------------------------------------------
 
 # Lattice2D-local types and functions
-export AbstractTopology, Connection, UnitCell, get_unit_cell
+export AbstractTopology, Connection, UnitCell, get_unit_cell, get_plaquette_rules
 export Lattice
 export build_lattice
 export sublattice_layout

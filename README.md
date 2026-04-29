@@ -44,6 +44,29 @@ println("Is bipartite? ", lat.is_bipartite)
 
 ![Honeycomb Lattice](docs/src/assets/figures/lattice/honeycomb_lattice.png)
 
+## Plots dependency
+
+`Lattice2D` re-exports `materialize` and `require_finite` from
+`LatticeCore`. Plotting helpers (e.g. via `Plots.plot(lat)`) are
+provided through `LatticeCore`'s `LatticeCorePlotsExt` package
+extension, which activates only when both `LatticeCore` and `Plots`
+are loaded. As a result:
+
+- A user that only computes neighbours / bonds / plaquettes / momenta
+  does **not** need `Plots` and pays no precompilation cost for it.
+- A user that wants visualisation should `using Plots` alongside
+  `using Lattice2D`; the recipe / plot method is then picked up
+  automatically.
+
+The `docs/` build environment loads `Plots` explicitly so the gallery
+figures are rendered; see `docs/src/Gallery.md` for visualisation
+examples.
+
+> Note: `Project.toml` currently lists `Plots` as a regular dependency
+> for backward compatibility with downstream code that imports it
+> transitively. Migrating it to a `[weakdeps]` extension is tracked
+> separately and will be a breaking release.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to open an Issue or submit a pull requests.
