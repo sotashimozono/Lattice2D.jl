@@ -100,6 +100,14 @@ LatticeCore.elements(lat::Lattice, ::PlaquetteCenter) = _get_cache(lat).plaquett
 
 # ---- Element positions: O(1) via cached Vector --------------------
 
+# VertexCenter override: explicit so the call site does not have to
+# round-trip through LatticeCore's generic AbstractLattice fallback
+# (which already calls `position(lat, i)`). The behaviour is the same,
+# this method just makes the element-API contract self-documenting on
+# `Lattice` and matches the issue #42 request for an explicit
+# specialisation.
+LatticeCore.element_position(lat::Lattice, ::VertexCenter, i::Int) = position(lat, i)
+
 function LatticeCore.element_position(lat::Lattice, ::BondCenter, i::Int)
     b = _get_cache(lat).bonds[i]
     return bond_center(lat, b)
@@ -107,6 +115,29 @@ end
 
 function LatticeCore.element_position(lat::Lattice, ::PlaquetteCenter, i::Int)
     return _get_cache(lat).plaquettes[i].center
+end
+
+# ---- Element-position iterators: lazy, no full materialisation ----
+#
+# LatticeCore's generic `element_positions(lat, e)` is a lazy
+# generator over `1:num_elements(lat, e)` that calls
+# `element_position(lat, e, i)` on each step. For `Lattice` we can do
+# better: `BondCenter` and `PlaquetteCenter` already have a cached
+# Vector, so we hand back a generator that indexes the cache directly
+# (no per-step `_nth` walk, no extra dispatch through the generic
+# fallback). For `VertexCenter` we forward to `positions(lat)` so the
+# call shares whatever iteration strategy the lattice picks for sites.
+
+LatticeCore.element_positions(lat::Lattice, ::VertexCenter) = positions(lat)
+
+function LatticeCore.element_positions(lat::Lattice, ::BondCenter)
+    bs = _get_cache(lat).bonds
+    return (bond_center(lat, b) for b in bs)
+end
+
+function LatticeCore.element_positions(lat::Lattice, ::PlaquetteCenter)
+    ps = _get_cache(lat).plaquettes
+    return (p.center for p in ps)
 end
 
 # ---- Same-centring adjacency: O(degree) / O(boundary) -------------
