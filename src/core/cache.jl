@@ -37,8 +37,6 @@ struct LatticeCache{T<:AbstractFloat}
     plaquettes_by_bond::Dict{Tuple{Int,Int},Vector{Int}}
 end
 
-@inline _edge_key(i::Int, j::Int) = (min(i, j), max(i, j))
-
 """
     _build_lattice_cache(lat::Lattice{Topo, T}) → LatticeCache{T}
 
