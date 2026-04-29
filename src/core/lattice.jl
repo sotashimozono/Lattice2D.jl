@@ -93,9 +93,51 @@ LatticeCore.size_trait(lat::Lattice) = FiniteSize((lat.Lx, lat.Ly))
 #
 # Shared driver used by `neighbors` and `neighbor_bonds`: iterate the
 # outgoing + incoming unit-cell connections at the cell containing
-# `i`, apply per-axis BCs, and yield `(j, d_vec, type)` for every
-# valid step. This is the one place where the unit-cell topology meets
-# the sample boundary.
+# `i`, apply per-axis BCs, and yield a `Step{T}` for every valid step.
+# This is the one place where the unit-cell topology meets the sample
+# boundary.
+
+"""
+    Step{T}
+
+Internal, concretely-typed record returned by [`_connection_steps`](@ref):
+the result of resolving a unit-cell `Connection` against the sample
+boundary. Fields:
+
+- `j::Int` — neighbour site index
+- `d_vec::SVector{2,T}` — wrapped displacement vector
+- `type::Symbol` — bond type tag (`:type_N`)
+
+Replaces the previous `Tuple{Int,SVector{2,T},Symbol}` representation
+to make the eltype concrete and remove the per-step dynamic
+`Symbol("type_", conn.type)` from the hot path.
+"""
+struct Step{T<:AbstractFloat}
+    j::Int
+    d_vec::SVector{2,T}
+    type::Symbol
+end
+
+# Cached `connection-type-id → Symbol` lookup for a topology. Built
+# once per `Topo` and reused on every `_connection_steps` call so the
+# hot path never calls `Symbol("type_", n)` again.
+const _CONN_TYPE_SYMBOLS = IdDict{DataType,Vector{Symbol}}()
+
+@inline function _conn_type_symbols(::Type{Topo}) where {Topo<:AbstractTopology}
+    cached = get(_CONN_TYPE_SYMBOLS, Topo, nothing)
+    cached === nothing || return cached
+    uc = get_unit_cell(Topo)
+    maxtype = 0
+    for conn in uc.connections
+        conn.type > maxtype && (maxtype = conn.type)
+    end
+    syms = Vector{Symbol}(undef, maxtype)
+    @inbounds for k in 1:maxtype
+        syms[k] = Symbol("type_", k)
+    end
+    _CONN_TYPE_SYMBOLS[Topo] = syms
+    return syms
+end
 
 function _connection_steps(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
     Lx, Ly = _dims(lat)
@@ -108,9 +150,11 @@ function _connection_steps(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
     bx, by = lat.boundary.axes
     a1, a2 = _basis_sv(typeof(lat))
     subs = _sub_offsets(typeof(lat))
+    type_syms = _conn_type_symbols(Topo)
 
-    steps = Tuple{Int,SVector{2,T},Symbol}[]
+    steps = Step{T}[]
     for conn in uc.connections
+        type_sym = @inbounds type_syms[conn.type]
         # Outgoing: this cell's `conn.src_sub` → neighbour cell's `conn.dst_sub`.
         if conn.src_sub == s
             tx, ty = cx + conn.dx, cy + conn.dy
@@ -128,7 +172,7 @@ function _connection_steps(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
                         conn.dx * a1 +
                         conn.dy * a2 +
                         (subs[conn.dst_sub] - subs[conn.src_sub])
-                    push!(steps, (j, d_vec, Symbol("type_", conn.type)))
+                    push!(steps, Step{T}(j, d_vec, type_sym))
                 end
             end
         end
@@ -148,7 +192,7 @@ function _connection_steps(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
                     d_vec =
                         -(conn.dx * a1 + conn.dy * a2) +
                         (subs[conn.src_sub] - subs[conn.dst_sub])
-                    push!(steps, (j, d_vec, Symbol("type_", conn.type)))
+                    push!(steps, Step{T}(j, d_vec, type_sym))
                 end
             end
         end
@@ -180,7 +224,8 @@ function LatticeCore.neighbors(lat::Lattice, i::Int; shell::Union{Nothing,Int}=n
     if shell === nothing
         out = Int[]
         seen = Set{Int}()
-        for (j, _, _) in _connection_steps(lat, i)
+        for step in _connection_steps(lat, i)
+            j = step.j
             if j != i && !(j in seen)
                 push!(out, j)
                 push!(seen, j)
@@ -256,9 +301,10 @@ end
 function LatticeCore.neighbor_bonds(lat::Lattice{Topo,T}, i::Int) where {Topo,T}
     out = Bond{2,T}[]
     seen = Set{Int}()
-    for (j, d_vec, type) in _connection_steps(lat, i)
+    for step in _connection_steps(lat, i)
+        j = step.j
         if j != i && !(j in seen)
-            push!(out, Bond{2,T}(i, j, d_vec, type))
+            push!(out, Bond{2,T}(i, j, step.d_vec, step.type))
             push!(seen, j)
         end
     end
