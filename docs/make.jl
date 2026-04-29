@@ -1,6 +1,10 @@
 using Lattice2D
 using Documenter
 
+# Run the feature figure generator script automatically before building docs
+@info "Generating geometric feature figures..."
+include(joinpath(@__DIR__, "src", "generate_features.jl"))
+
 # ドキュメントを生成する
 makedocs(;
     sitename="Lattice2D.jl",
