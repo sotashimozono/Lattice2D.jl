@@ -174,10 +174,7 @@ function _connection_steps_kernel(
                 ny, ok_y = apply_axis_bc(by, ty, Ly)
                 if ok_y
                     j = site_index(
-                        indexing,
-                        (Lx, Ly),
-                        nsub,
-                        LatticeCoord{2}((nx, ny), conn.dst_sub),
+                        indexing, (Lx, Ly), nsub, LatticeCoord{2}((nx, ny), conn.dst_sub)
                     )
                     d_vec =
                         conn.dx * a1 +
@@ -195,10 +192,7 @@ function _connection_steps_kernel(
                 ny, ok_y = apply_axis_bc(by, ty, Ly)
                 if ok_y
                     j = site_index(
-                        indexing,
-                        (Lx, Ly),
-                        nsub,
-                        LatticeCoord{2}((nx, ny), conn.src_sub),
+                        indexing, (Lx, Ly), nsub, LatticeCoord{2}((nx, ny), conn.src_sub)
                     )
                     d_vec =
                         -(conn.dx * a1 + conn.dy * a2) +
