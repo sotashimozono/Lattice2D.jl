@@ -5,6 +5,7 @@
 [![Code Style: Blue](https://img.shields.io/badge/Code%20Style-Blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 [![codecov](https://codecov.io/gh/sotashimozono/Lattice2D.jl/graph/badge.svg?token=6E7VZ9MJMK)](https://codecov.io/gh/sotashimozono/Lattice2D.jl)
 [![Build Status](https://github.com/sotashimozono/Lattice2D.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/sotashimozono/Lattice2D.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -66,6 +67,13 @@ examples.
 > for backward compatibility with downstream code that imports it
 > transitively. Migrating it to a `[weakdeps]` extension is tracked
 > separately and will be a breaking release.
+
+## Quality assurance
+
+The test suite runs [Aqua.jl](https://github.com/JuliaTesting/Aqua.jl)
+checks (ambiguities / unbound args / undefined exports / stale deps /
+piracy / persistent tasks) on every CI build, with `Plots` excluded from
+`stale_deps` while its migration to `[weakdeps]` is pending.
 
 ## Contributing
 
