@@ -3,8 +3,9 @@
     # ---- to_lattice (issue #41) ------------------------------------
 
     @testset "to_lattice round-trips with to_real on every shipped topology" begin
-        for Topo in (Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland,
-                     Dice, UnionJack)
+        for Topo in (
+            Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
+        )
             lat = build_lattice(Topo, 4, 4)
             for i in 1:num_sites(lat)
                 r = to_real(lat, lattice_coord(RowMajor(), (4, 4), num_sublattices(lat), i))
