@@ -115,6 +115,7 @@ include("core/cache.jl")
 include("core/element_api.jl")
 include("core/constructor.jl")
 include("utils/iterator.jl")
+include("api/builders.jl")
 
 # ---- Plots-extension stubs ------------------------------------------
 #
@@ -213,6 +214,9 @@ export plot_state
 export brillouin_zone, high_symmetry_points, plot_brillouin_zone
 export AVAILABLE_LATTICES
 export Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
+
+# Convenience builders (thin wrappers around `build_lattice`)
+export square, triangular, honeycomb, kagome, lieb, union_jack, dice, shastry_sutherland
 
 # Re-exports from LatticeCore so `using Lattice2D` is self-sufficient
 export AbstractLattice
