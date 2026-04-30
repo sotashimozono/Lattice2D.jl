@@ -74,5 +74,4 @@ dice(L::Int, M::Int=L; kw...) = build_lattice(Dice, L, M; kw...)
 
 Shortcut for `build_lattice(ShastrySutherland, L, M; kw...)`.
 """
-shastry_sutherland(L::Int, M::Int=L; kw...) =
-    build_lattice(ShastrySutherland, L, M; kw...)
+shastry_sutherland(L::Int, M::Int=L; kw...) = build_lattice(ShastrySutherland, L, M; kw...)
