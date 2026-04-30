@@ -116,6 +116,11 @@ include("core/element_api.jl")
 include("core/constructor.jl")
 include("utils/iterator.jl")
 
+# ---- Plots-extension stubs ------------------------------------------
+#
+# Concrete methods live in `ext/Lattice2DPlotsExt.jl` and are loaded
+# automatically once `Plots` is in scope.
+
 """
     plot_bonds(lat::Lattice; bond_types=:all, color_by=:type, kwargs...)
 
@@ -133,6 +138,24 @@ list and worked examples.
 """
 function plot_bonds end
 
+"""
+    plot_state(lat::Lattice, state::AbstractVector;
+               colormap=:viridis, marker_size=12, kwargs...) → Plots.Plot
+
+Visualise a per-site `state::AbstractVector` (with `length(state) ==
+num_sites(lat)`) as a coloured scatter on top of the lattice
+geometry. Both continuous fields (energy density, charge density,
+expectation values) and discrete labels (`Bool`, small-cardinality
+`Int` spin / clock-model configurations) are supported through the
+same call.
+
+The concrete method lives in the `Lattice2DPlotsExt` package
+extension and is loaded automatically once `Plots` is in scope. See
+the `Lattice2DPlotsExt` module docstring for the full keyword list
+and worked examples.
+"""
+function plot_state end
+
 # ---- Exports --------------------------------------------------------
 
 # Lattice2D-local types and functions
@@ -142,6 +165,7 @@ export build_lattice
 export sublattice_layout
 export num_bonds, num_plaquettes, bond_type
 export plot_bonds
+export plot_state
 export AVAILABLE_LATTICES
 export Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
 
