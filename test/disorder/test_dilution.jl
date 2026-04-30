@@ -137,9 +137,7 @@
 
         # killed_bonds out-of-range / self-loop
         N = num_sites(base)
-        @test_throws ArgumentError DilutedLattice(
-            base, trues(N), Set([(1, N + 1)])
-        )
+        @test_throws ArgumentError DilutedLattice(base, trues(N), Set([(1, N + 1)]))
         @test_throws ArgumentError DilutedLattice(base, trues(N), Set([(2, 2)]))
     end
 
