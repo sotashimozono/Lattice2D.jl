@@ -441,28 +441,11 @@ end
 # `core/element_api.jl`, powered by the cached plaquette vector.
 
 # ---- Graph / topology traits ----------------------------------------
-
-function LatticeCore.is_bipartite(lat::Lattice)
-    N = num_sites(lat)
-    colors = zeros(Int, N)
-    for i in 1:N
-        colors[i] == 0 || continue
-        colors[i] = 1
-        queue = [i]
-        while !isempty(queue)
-            u = popfirst!(queue)
-            for v in neighbors(lat, u)
-                if colors[v] == 0
-                    colors[v] = -colors[u]
-                    push!(queue, v)
-                elseif colors[v] == colors[u]
-                    return false
-                end
-            end
-        end
-    end
-    return true
-end
+#
+# `LatticeCore.is_bipartite(lat::Lattice)` lives in
+# `src/api/predicates.jl` alongside the other structural-predicate
+# helpers (`coordination_number`, `mean_coordination`,
+# `bond_distances`, `shells`).
 
 function LatticeCore.periodicity(lat::Lattice)
     return all(!(ax isa OpenAxis) for ax in lat.boundary.axes) ? Periodic() : Aperiodic()
