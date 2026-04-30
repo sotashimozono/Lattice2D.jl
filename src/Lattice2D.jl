@@ -116,6 +116,23 @@ include("core/element_api.jl")
 include("core/constructor.jl")
 include("utils/iterator.jl")
 
+"""
+    plot_bonds(lat::Lattice; bond_types=:all, color_by=:type, kwargs...)
+
+Lattice2D-flavoured standalone bond plot. Returns a fresh
+`Plots.Plot` that draws every bond in `lat` (optionally filtered by
+`bond_types`) as a line segment, grouped — and therefore coloured —
+by either the bond's `:type` tag or its rounded direction.
+
+This function is a stub in the core module; the concrete method
+lives in the `Lattice2DPlotsExt` package extension and is loaded
+automatically once `Plots` is in scope.
+
+See the `Lattice2DPlotsExt` module docstring for the full keyword
+list and worked examples.
+"""
+function plot_bonds end
+
 # ---- Exports --------------------------------------------------------
 
 # Lattice2D-local types and functions
@@ -124,6 +141,7 @@ export Lattice
 export build_lattice
 export sublattice_layout
 export num_bonds, num_plaquettes, bond_type
+export plot_bonds
 export AVAILABLE_LATTICES
 export Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
 
