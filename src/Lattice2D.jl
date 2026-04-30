@@ -156,6 +156,50 @@ and worked examples.
 """
 function plot_state end
 
+"""
+    brillouin_zone(lat::Lattice; shell::Int=2) -> Vector{SVector{2,Float64}}
+
+Compute the Brillouin zone of `lat` as the Wigner-Seitz cell of its
+reciprocal lattice. Returns an ordered list of polygon vertices in
+Cartesian k-space, walked counter-clockwise around the origin.
+
+Throws `ArgumentError` if `lat` has any open axis (no reciprocal
+lattice => no BZ).
+
+The concrete method lives in the `Lattice2DPlotsExt` package
+extension and is loaded automatically once `Plots` is in scope. See
+the `Lattice2DPlotsExt` module docstring for the algorithm and the
+`shell` keyword.
+"""
+function brillouin_zone end
+
+"""
+    high_symmetry_points(lat::Lattice) -> Dict{Symbol,SVector{2,Float64}}
+
+Topology-keyed dictionary of high-symmetry points (Gamma, X, M, K,
+...) in Cartesian k-coordinates. Currently populated for `Square`,
+`Triangular`, and `Honeycomb`; other topologies fall back to a
+singleton `:Gamma` entry.
+
+The concrete method lives in the `Lattice2DPlotsExt` package
+extension and is loaded automatically once `Plots` is in scope.
+"""
+function high_symmetry_points end
+
+"""
+    plot_brillouin_zone(lat::Lattice; show_mesh=false, ml=nothing,
+                        show_high_symmetry=false, kwargs...) -> Plots.Plot
+
+Plot the Brillouin zone of `lat` as a closed polygon. Optionally
+overlays a momentum-lattice mesh on top of the BZ and labels
+high-symmetry points.
+
+The concrete method lives in the `Lattice2DPlotsExt` package
+extension and is loaded automatically once `Plots` is in scope. See
+the `Lattice2DPlotsExt` module docstring for the full keyword list.
+"""
+function plot_brillouin_zone end
+
 # ---- Exports --------------------------------------------------------
 
 # Lattice2D-local types and functions
@@ -166,6 +210,7 @@ export sublattice_layout
 export num_bonds, num_plaquettes, bond_type
 export plot_bonds
 export plot_state
+export brillouin_zone, high_symmetry_points, plot_brillouin_zone
 export AVAILABLE_LATTICES
 export Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
 
