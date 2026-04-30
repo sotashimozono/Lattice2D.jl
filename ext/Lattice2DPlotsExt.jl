@@ -74,19 +74,13 @@ end
 
 # Per-bond grouping key, returned as a Symbol so we can hand it to
 # `Plots.plot!(...; group=keys)` and get one legend entry per group.
-function _bond_group_keys(
-    lat::Lattice2D.Lattice, bs::AbstractVector, color_by::Symbol
-)
+function _bond_group_keys(lat::Lattice2D.Lattice, bs::AbstractVector, color_by::Symbol)
     if color_by === :type
         return Symbol[b.type for b in bs]
     elseif color_by === :direction
         return Symbol[Symbol("dir_", _direction_key(b.vector)) for b in bs]
     else
-        throw(
-            ArgumentError(
-                "color_by must be :type or :direction; got $(color_by)"
-            ),
-        )
+        throw(ArgumentError("color_by must be :type or :direction; got $(color_by)"))
     end
 end
 
@@ -115,9 +109,7 @@ end
 # `NaN`-separated layout as `seg_x` / `seg_y`: three entries per
 # bond (two endpoints + NaN sentinel) sharing the same group key,
 # which is what `Plots.plot!(...; group=...)` consumes.
-function _grouped_segments(
-    lat::Lattice2D.Lattice, bs::AbstractVector, color_by::Symbol
-)
+function _grouped_segments(lat::Lattice2D.Lattice, bs::AbstractVector, color_by::Symbol)
     seg_x = Float64[]
     seg_y = Float64[]
     grp_x = Symbol[]
@@ -159,12 +151,7 @@ omit `bond_types` / `color_by` get the same set of bonds drawn as
 before, just with one legend entry per bond-type group.
 """
 function LatticeCore.plot_bonds!(
-    p,
-    lat::Lattice2D.Lattice;
-    bond_types=:all,
-    color_by::Symbol=:type,
-    lw=1.5,
-    kwargs...,
+    p, lat::Lattice2D.Lattice; bond_types=:all, color_by::Symbol=:type, lw=1.5, kwargs...
 )
     bs = _filter_bonds(lat, bond_types)
     isempty(bs) && return p
