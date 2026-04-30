@@ -114,6 +114,7 @@ include("core/lattice.jl")
 include("core/cache.jl")
 include("core/element_api.jl")
 include("core/constructor.jl")
+include("api/predicates.jl")
 include("utils/iterator.jl")
 include("api/builders.jl")
 
@@ -217,6 +218,9 @@ export Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, Uni
 
 # Convenience builders (thin wrappers around `build_lattice`)
 export square, triangular, honeycomb, kagome, lieb, union_jack, dice, shastry_sutherland
+
+# Structural predicates (`src/api/predicates.jl`)
+export coordination_number, mean_coordination, bond_distances, shells
 
 # Re-exports from LatticeCore so `using Lattice2D` is self-sufficient
 export AbstractLattice

@@ -5,7 +5,7 @@ Abstract supertype for 2D lattice topologies (Square, Triangular,
 Honeycomb, ...). Each concrete subtype is a singleton that acts as
 a dispatch key for [`get_unit_cell`](@ref), and, through
 `TopologyTrait` in LatticeCore, as the `topology(lat)` value of the
-resulting [`PeriodicLattice2D`](@ref).
+resulting [`Lattice`](@ref).
 """
 abstract type AbstractTopology{D} end
 
@@ -118,7 +118,7 @@ end
     get_plaquette_rules(::Type{T}) where {T <: AbstractTopology}
         → Vector{PlaquetteRule}
 
-Introspection helper that returns the list of [`PlaquetteRule`](@ref)
+Introspection helper that returns the list of `PlaquetteRule`
 templates declared in topology `T`'s unit cell. Equivalent to
 `get_unit_cell(T).plaquettes`, but communicates intent ("I only want
 the plaquette rules, not the full unit cell") and returns an empty

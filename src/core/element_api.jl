@@ -65,7 +65,7 @@ num_bonds(lat::Lattice) = num_elements(lat, BondCenter())
 
 Convenience alias for `num_elements(lat, PlaquetteCenter())`.
 Returns 0 for topologies whose unit cell declares no
-[`PlaquetteRule`](@ref) (currently this is just `Dice` — wait, now
+`PlaquetteRule` (currently this is just `Dice` — wait, now
 it is not; every shipped topology has a plaquette list as of Iter 6).
 """
 num_plaquettes(lat::Lattice) = num_elements(lat, PlaquetteCenter())

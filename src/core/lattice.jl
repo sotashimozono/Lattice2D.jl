@@ -122,7 +122,7 @@ LatticeCore.size_trait(lat::Lattice) = FiniteSize((lat.Lx, lat.Ly))
 """
     Step{T}
 
-Internal, concretely-typed record returned by [`_connection_steps`](@ref):
+Internal, concretely-typed record returned by `_connection_steps`:
 the result of resolving a unit-cell `Connection` against the sample
 boundary. Fields:
 
@@ -441,28 +441,11 @@ end
 # `core/element_api.jl`, powered by the cached plaquette vector.
 
 # ---- Graph / topology traits ----------------------------------------
-
-function LatticeCore.is_bipartite(lat::Lattice)
-    N = num_sites(lat)
-    colors = zeros(Int, N)
-    for i in 1:N
-        colors[i] == 0 || continue
-        colors[i] = 1
-        queue = [i]
-        while !isempty(queue)
-            u = popfirst!(queue)
-            for v in neighbors(lat, u)
-                if colors[v] == 0
-                    colors[v] = -colors[u]
-                    push!(queue, v)
-                elseif colors[v] == colors[u]
-                    return false
-                end
-            end
-        end
-    end
-    return true
-end
+#
+# `LatticeCore.is_bipartite(lat::Lattice)` lives in
+# `src/api/predicates.jl` alongside the other structural-predicate
+# helpers (`coordination_number`, `mean_coordination`,
+# `bond_distances`, `shells`).
 
 function LatticeCore.periodicity(lat::Lattice)
     return all(!(ax isa OpenAxis) for ax in lat.boundary.axes) ? Periodic() : Aperiodic()
@@ -518,8 +501,8 @@ end
 """
     to_lattice(lat::Lattice, coord::RealSpace) → LatticeCoord{2}
 
-Inverse of [`to_real`](@ref): map a real-space point back to the
-nearest [`LatticeCoord`](@ref) on `lat`. The implementation inverts
+Inverse of `to_real`: map a real-space point back to the
+nearest `LatticeCoord` on `lat`. The implementation inverts
 the basis matrix `A = [a1 a2]` once per call (`SMatrix{2,2}`, so the
 inverse is non-allocating), subtracts each candidate sublattice
 offset, and picks the `(cell, sublattice)` triple whose rounded cell
@@ -532,7 +515,7 @@ cell is returned as-is even when it falls outside `1:L`; callers that
 need an in-sample guarantee should validate the result against
 `(Lx, Ly)`.
 
-Together with [`to_real`](@ref) this satisfies
+Together with `to_real` this satisfies
 `to_lattice(lat, to_real(lat, c)) == c` for every in-sample
 `LatticeCoord` and every shipped topology.
 """
