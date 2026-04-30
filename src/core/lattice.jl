@@ -122,7 +122,7 @@ LatticeCore.size_trait(lat::Lattice) = FiniteSize((lat.Lx, lat.Ly))
 """
     Step{T}
 
-Internal, concretely-typed record returned by [`_connection_steps`](@ref):
+Internal, concretely-typed record returned by `_connection_steps`:
 the result of resolving a unit-cell `Connection` against the sample
 boundary. Fields:
 
@@ -501,8 +501,8 @@ end
 """
     to_lattice(lat::Lattice, coord::RealSpace) → LatticeCoord{2}
 
-Inverse of [`to_real`](@ref): map a real-space point back to the
-nearest [`LatticeCoord`](@ref) on `lat`. The implementation inverts
+Inverse of `to_real`: map a real-space point back to the
+nearest `LatticeCoord` on `lat`. The implementation inverts
 the basis matrix `A = [a1 a2]` once per call (`SMatrix{2,2}`, so the
 inverse is non-allocating), subtracts each candidate sublattice
 offset, and picks the `(cell, sublattice)` triple whose rounded cell
@@ -515,7 +515,7 @@ cell is returned as-is even when it falls outside `1:L`; callers that
 need an in-sample guarantee should validate the result against
 `(Lx, Ly)`.
 
-Together with [`to_real`](@ref) this satisfies
+Together with `to_real` this satisfies
 `to_lattice(lat, to_real(lat, c)) == c` for every in-sample
 `LatticeCoord` and every shipped topology.
 """

@@ -69,7 +69,7 @@ end
 """
     sublattice_layout(Topology, Lx, Ly, types; indexing = RowMajor())
 
-Convenience constructor for a [`SublatticeLayout`](@ref) that matches
+Convenience constructor for a `SublatticeLayout` that matches
 the geometric sublattice structure of an `Lx × Ly` lattice of the
 given `Topology`.
 
