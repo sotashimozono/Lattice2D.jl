@@ -38,8 +38,9 @@ using Plots
             v_a = verts[k]
             v_b = verts[mod1(k + 1, length(verts))]
             v_c = verts[mod1(k + 2, length(verts))]
-            cross = (v_b[1] - v_a[1]) * (v_c[2] - v_b[2]) -
-                    (v_b[2] - v_a[2]) * (v_c[1] - v_b[1])
+            cross =
+                (v_b[1] - v_a[1]) * (v_c[2] - v_b[2]) -
+                (v_b[2] - v_a[2]) * (v_c[1] - v_b[1])
             @test cross > 0
         end
     end
