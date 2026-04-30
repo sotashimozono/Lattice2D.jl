@@ -328,4 +328,197 @@ function Lattice2D.plot_state(
     return p
 end
 
+# ---- Brillouin zone -------------------------------------------------
+
+"""
+    Lattice2D.brillouin_zone(lat::Lattice2D.Lattice; shell::Int=2)
+        -> Vector{SVector{2,Float64}}
+
+Compute the Brillouin zone of `lat` as the Wigner-Seitz cell of its
+reciprocal lattice via half-plane intersection over the
+`(m, n) ∈ [-shell, shell]² ∖ {(0,0)}` shell of reciprocal vectors.
+Returns vertices ordered counter-clockwise around the origin.
+"""
+function Lattice2D.brillouin_zone(lat::Lattice2D.Lattice; shell::Int=2)
+    LatticeCore.reciprocal_support(lat) isa LatticeCore.HasReciprocal || throw(
+        ArgumentError(
+            "brillouin_zone requires a fully periodic Lattice (got $(lat.boundary))"
+        ),
+    )
+    ml = LatticeCore.reciprocal_lattice(lat)
+    B = LatticeCore.reciprocal_basis(ml)
+    return _brillouin_zone_from_basis(SMatrix{2,2,Float64}(B), shell)
+end
+
+"""
+    Lattice2D.high_symmetry_points(lat::Lattice2D.Lattice)
+        -> Dict{Symbol,SVector{2,Float64}}
+
+Topology-keyed dictionary of high-symmetry points (Cartesian k).
+Populated for `Square`, `Triangular`, `Honeycomb`; falls back to
+`Dict(:Gamma => 0)` for other topologies.
+"""
+function Lattice2D.high_symmetry_points(lat::Lattice2D.Lattice)
+    LatticeCore.reciprocal_support(lat) isa LatticeCore.HasReciprocal || throw(
+        ArgumentError(
+            "high_symmetry_points requires a fully periodic Lattice (got $(lat.boundary))",
+        ),
+    )
+    ml = LatticeCore.reciprocal_lattice(lat)
+    B = SMatrix{2,2,Float64}(LatticeCore.reciprocal_basis(ml))
+    return _high_symmetry_points(LatticeCore.topology(lat), B)
+end
+
+const _BZ_TOL = 1e-10
+
+function _brillouin_zone_from_basis(B::SMatrix{2,2,Float64}, shell::Int)
+    Gs = SVector{2,Float64}[]
+    for n in (-shell):shell, m in (-shell):shell
+        (m == 0 && n == 0) && continue
+        push!(Gs, B * SVector{2,Float64}(m, n))
+    end
+
+    verts = SVector{2,Float64}[]
+    nG = length(Gs)
+    for i in 1:nG
+        Gi = Gs[i]
+        rhs_i = dot(Gi, Gi) / 2
+        for j in (i + 1):nG
+            Gj = Gs[j]
+            rhs_j = dot(Gj, Gj) / 2
+            M = SMatrix{2,2,Float64}(Gi[1], Gj[1], Gi[2], Gj[2])
+            d = det(M)
+            abs(d) < _BZ_TOL && continue
+            k = M \ SVector{2,Float64}(rhs_i, rhs_j)
+            inside = true
+            for G in Gs
+                lhs = 2 * dot(k, G)
+                rhs = dot(G, G)
+                if lhs > rhs + _BZ_TOL * (1 + abs(rhs))
+                    inside = false
+                    break
+                end
+            end
+            inside || continue
+            already = false
+            for v in verts
+                if norm(v - k) < _BZ_TOL
+                    already = true
+                    break
+                end
+            end
+            already || push!(verts, k)
+        end
+    end
+
+    isempty(verts) && return verts
+
+    cx = sum(v[1] for v in verts) / length(verts)
+    cy = sum(v[2] for v in verts) / length(verts)
+    sort!(verts; by=v -> atan(v[2] - cy, v[1] - cx))
+    return verts
+end
+
+function _high_symmetry_points(
+    ::LatticeCore.TopologyTrait{:square}, B::SMatrix{2,2,Float64}
+)
+    b1 = B[:, 1]
+    b2 = B[:, 2]
+    return Dict{Symbol,SVector{2,Float64}}(
+        :Gamma => SVector{2,Float64}(0.0, 0.0),
+        :X => SVector{2,Float64}(b1 / 2),
+        :M => SVector{2,Float64}((b1 + b2) / 2),
+    )
+end
+
+function _high_symmetry_points(
+    ::LatticeCore.TopologyTrait{:triangular}, B::SMatrix{2,2,Float64}
+)
+    b1 = B[:, 1]
+    b2 = B[:, 2]
+    return Dict{Symbol,SVector{2,Float64}}(
+        :Gamma => SVector{2,Float64}(0.0, 0.0),
+        :M => SVector{2,Float64}(b1 / 2),
+        :K => SVector{2,Float64}((b1 + 2b2) / 3),
+        :K_prime => SVector{2,Float64}((2b1 + b2) / 3),
+    )
+end
+
+function _high_symmetry_points(
+    ::LatticeCore.TopologyTrait{:honeycomb}, B::SMatrix{2,2,Float64}
+)
+    return _high_symmetry_points(LatticeCore.TopologyTrait{:triangular}(), B)
+end
+
+function _high_symmetry_points(::LatticeCore.TopologyTrait, ::SMatrix{2,2,Float64})
+    return Dict{Symbol,SVector{2,Float64}}(:Gamma => SVector{2,Float64}(0.0, 0.0))
+end
+
+function Lattice2D.plot_brillouin_zone(
+    lat::Lattice2D.Lattice;
+    show_mesh::Bool=false,
+    ml::Union{Nothing,LatticeCore.AbstractMomentumLattice}=nothing,
+    show_high_symmetry::Bool=false,
+    shell::Int=2,
+    bz_color=:black,
+    bz_lw=1.5,
+    mesh_color=:steelblue,
+    mesh_size=3,
+    label_color=:crimson,
+    title=nothing,
+    kwargs...,
+)
+    verts = Lattice2D.brillouin_zone(lat; shell=shell)
+    isempty(verts) && throw(
+        ErrorException(
+            "Brillouin zone polygon is empty -- bump `shell` or check the basis"
+        ),
+    )
+
+    xs = Float64[v[1] for v in verts]
+    ys = Float64[v[2] for v in verts]
+    push!(xs, xs[1])
+    push!(ys, ys[1])
+
+    p = Plots.plot(;
+        aspect_ratio=:equal,
+        xlabel="kx",
+        ylabel="ky",
+        legend=:topright,
+        title=title === nothing ? "Brillouin zone" : title,
+        kwargs...,
+    )
+    Plots.plot!(p, xs, ys; color=bz_color, lw=bz_lw, label="BZ")
+
+    if show_mesh
+        mesh = ml === nothing ? LatticeCore.reciprocal_lattice(lat) : ml
+        M = LatticeCore.num_k_points(mesh)
+        kxs = [Float64(LatticeCore.k_point(mesh, i)[1]) for i in 1:M]
+        kys = [Float64(LatticeCore.k_point(mesh, i)[2]) for i in 1:M]
+        Plots.scatter!(
+            p, kxs, kys; mc=mesh_color, ms=mesh_size, markerstrokewidth=0, label="mesh"
+        )
+    end
+
+    if show_high_symmetry
+        hsp = Lattice2D.high_symmetry_points(lat)
+        hxs = Float64[]
+        hys = Float64[]
+        labels = String[]
+        for (name, k) in hsp
+            push!(hxs, Float64(k[1]))
+            push!(hys, Float64(k[2]))
+            push!(labels, String(name))
+        end
+        Plots.scatter!(
+            p, hxs, hys; mc=label_color, ms=5, markerstrokewidth=0, label="high-sym"
+        )
+        for (x, y, name) in zip(hxs, hys, labels)
+            Plots.annotate!(p, x, y, Plots.text(" $name", 10, label_color, :left, :bottom))
+        end
+    end
+
+    return p
+end
+
 end # module Lattice2DPlotsExt
