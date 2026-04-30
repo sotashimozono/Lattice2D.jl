@@ -117,6 +117,7 @@ include("core/constructor.jl")
 include("api/predicates.jl")
 include("utils/iterator.jl")
 include("api/builders.jl")
+include("disorder/dilution.jl")
 
 # ---- Plots-extension stubs ------------------------------------------
 #
@@ -213,6 +214,7 @@ export num_bonds, num_plaquettes, bond_type
 export plot_bonds
 export plot_state
 export brillouin_zone, high_symmetry_points, plot_brillouin_zone
+export DilutedLattice, dilute_sites, dilute_bonds
 export AVAILABLE_LATTICES
 export Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
 
