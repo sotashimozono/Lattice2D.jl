@@ -10,16 +10,18 @@ using StaticArrays
 #     Σ_i s_i e^{-i k r_i} = Σ_i e^{i (k_target - k) · r_i}
 # vanish off `k_target` (mod reciprocal-lattice vectors) and equal
 # `Nsites` at `k_target`, so `S(k_target) = Nsites`.
-_plane_wave_state(lat, k_target) =
+function _plane_wave_state(lat, k_target)
     [cis(dot(k_target, position(lat, i))) for i in 1:num_sites(lat)]
+end
 
 @testset "structure_factor FFT path (Lattice2DFFTWExt)" begin
     Random.seed!(20260429)
 
     @testset "FFT vs naive on every Bravais topology" begin
         # Random states, MP mesh from `reciprocal_lattice`.
-        for Topo in (Square, Triangular, Honeycomb, Kagome, Lieb,
-                     UnionJack, Dice, ShastrySutherland)
+        for Topo in (
+            Square, Triangular, Honeycomb, Kagome, Lieb, UnionJack, Dice, ShastrySutherland
+        )
             for (Lx, Ly) in ((4, 4), (6, 4))
                 lat = build_lattice(Topo, Lx, Ly)
                 ml = reciprocal_lattice(lat)
@@ -127,7 +129,8 @@ _plane_wave_state(lat, k_target) =
             @test argmax(S) == target_idx
             @test S[target_idx] ≈ Float64(N) rtol = 1e-10
             # All other k-points must vanish to FP noise.
-            S_off = copy(S); S_off[target_idx] = 0.0
+            S_off = copy(S);
+            S_off[target_idx] = 0.0
             @test maximum(S_off) < 1e-9
         end
     end

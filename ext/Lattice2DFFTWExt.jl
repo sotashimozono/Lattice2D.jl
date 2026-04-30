@@ -60,15 +60,19 @@ Lattice2DFFTWExt
 # directly — the FFT path for these topologies then reuses
 # `LatticeCoreFFTWExt._structure_factor_fft` unchanged.
 
-LatticeCore._has_known_grid(lat::Lattice2D.Lattice{Lattice2D.Square}) =
+function LatticeCore._has_known_grid(lat::Lattice2D.Lattice{Lattice2D.Square})
     _is_rowmajor_periodic(lat)
-LatticeCore._has_known_grid(lat::Lattice2D.Lattice{Lattice2D.Triangular}) =
+end
+function LatticeCore._has_known_grid(lat::Lattice2D.Lattice{Lattice2D.Triangular})
     _is_rowmajor_periodic(lat)
+end
 
-LatticeCore._reshape_state(::Lattice2D.Lattice{Lattice2D.Square}, state, dims) =
+function LatticeCore._reshape_state(::Lattice2D.Lattice{Lattice2D.Square}, state, dims)
     reshape(state, dims)
-LatticeCore._reshape_state(::Lattice2D.Lattice{Lattice2D.Triangular}, state, dims) =
+end
+function LatticeCore._reshape_state(::Lattice2D.Lattice{Lattice2D.Triangular}, state, dims)
     reshape(state, dims)
+end
 
 # ---- Multi-sublattice override --------------------------------------
 #
