@@ -61,17 +61,17 @@ Lattice2DFFTWExt
 # `LatticeCoreFFTWExt._structure_factor_fft` unchanged.
 
 function LatticeCore._has_known_grid(lat::Lattice2D.Lattice{Lattice2D.Square})
-    _is_rowmajor_periodic(lat)
+    return _is_rowmajor_periodic(lat)
 end
 function LatticeCore._has_known_grid(lat::Lattice2D.Lattice{Lattice2D.Triangular})
-    _is_rowmajor_periodic(lat)
+    return _is_rowmajor_periodic(lat)
 end
 
 function LatticeCore._reshape_state(::Lattice2D.Lattice{Lattice2D.Square}, state, dims)
-    reshape(state, dims)
+    return reshape(state, dims)
 end
 function LatticeCore._reshape_state(::Lattice2D.Lattice{Lattice2D.Triangular}, state, dims)
-    reshape(state, dims)
+    return reshape(state, dims)
 end
 
 # ---- Multi-sublattice override --------------------------------------
