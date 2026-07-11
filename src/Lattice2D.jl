@@ -119,6 +119,7 @@ include("api/regions.jl")
 include("utils/iterator.jl")
 include("api/builders.jl")
 include("api/dual.jl")
+include("api/symmetry.jl")
 include("disorder/dilution.jl")
 
 # ---- Plots-extension stubs ------------------------------------------
@@ -282,6 +283,11 @@ export edge_sites, bulk_sites, edge_bonds
 
 # Dual-lattice construction (`src/api/dual.jl`)
 export dual_lattice, dual_topology
+
+# Point-group symmetry & site orbits (`src/api/symmetry.jl`)
+export SymmetryOperation, symmetry_operations, symmetry_group_order
+export symmetry_orbits, site_orbit
+export is_rotation, is_reflection, is_inversion, rotation_angle
 
 # Re-exports from LatticeCore so `using Lattice2D` is self-sufficient
 export AbstractLattice
