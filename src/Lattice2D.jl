@@ -205,6 +205,56 @@ the `Lattice2DPlotsExt` module docstring for the full keyword list.
 """
 function plot_brillouin_zone end
 
+# ---- Makie-extension stubs ------------------------------------------
+#
+# Concrete methods live in `ext/Lattice2DMakieExt.jl` and are loaded
+# automatically once `Makie` (via CairoMakie / GLMakie / …) is in scope.
+# They carry a `makie_` prefix so they never collide with the `Plots`
+# backend's `plot_*` methods (`plot_state`, `LatticeCore.plot_lattice`),
+# which lets both backends be loaded in the same session.
+
+"""
+    makie_lattice(lat::Lattice; colorby=:sublattice, highlight_bonds=nothing,
+                  markersize=12, show_sites=true, kwargs...) -> Makie.Figure
+
+Makie-backend lattice drawing. Sites are scattered (coloured by `:sublattice`
+id when `colorby = :sublattice`, or a single colour otherwise) and bonds are
+drawn with the per-bond wrapped displacement, so periodic samples show no
+boundary-crossing "long lines". `highlight_bonds` — a collection of bond
+indices (into `bonds(lat)`) — are over-drawn in a contrasting colour.
+
+The concrete method lives in the `Lattice2DMakieExt` package extension and is
+loaded automatically once `Makie` is in scope (e.g. via `using CairoMakie`).
+"""
+function makie_lattice end
+
+"""
+    makie_state(lat::Lattice, state::AbstractVector; colormap=:RdBu,
+                arrows=false, markersize=15, kwargs...) -> Makie.Figure
+
+Visualise a per-site `state` (`length(state) == num_sites(lat)`) on the
+lattice geometry as a colour-mapped scatter with a colour bar — covering
+Ising (`±1`), Potts / clock (small integers) and continuous fields. With
+`arrows = true` the entries are read as in-plane angles (XY spins) and drawn
+as unit arrows over the sites.
+
+The concrete method lives in the `Lattice2DMakieExt` package extension.
+"""
+function makie_state end
+
+"""
+    makie_structure_factor(lat::Lattice, state::AbstractVector;
+                           k_range=(-π, π), resolution=200,
+                           colormap=:viridis, kwargs...) -> Makie.Figure
+
+Heatmap of the static structure factor
+`S(k) = |Σ_j state_j e^{-i k·r_j}|² / N` over a `resolution × resolution`
+grid of `k = (kx, ky)` spanning `k_range × k_range`.
+
+The concrete method lives in the `Lattice2DMakieExt` package extension.
+"""
+function makie_structure_factor end
+
 # ---- Exports --------------------------------------------------------
 
 # Lattice2D-local types and functions
@@ -216,6 +266,7 @@ export num_bonds, num_plaquettes, bond_type
 export plot_bonds
 export plot_state
 export brillouin_zone, high_symmetry_points, plot_brillouin_zone
+export makie_lattice, makie_state, makie_structure_factor
 export DilutedLattice, dilute_sites, dilute_bonds
 export AVAILABLE_LATTICES
 export Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
