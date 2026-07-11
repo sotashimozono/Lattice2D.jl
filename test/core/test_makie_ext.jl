@@ -7,15 +7,14 @@ using Test
 # end-to-end check that the draw calls are valid), and check the returned type.
 const MAKIE_EXT = Base.get_extension(Lattice2D, :Lattice2DMakieExt)
 
-renders(fig) =
-    mktemp() do path, io
-        close(io)
-        p = path * ".png"
-        CairoMakie.save(p, fig)
-        ok = isfile(p) && filesize(p) > 0
-        rm(p; force=true)
-        return ok
-    end
+renders(fig) = mktemp() do path, io
+    close(io)
+    p = path * ".png"
+    CairoMakie.save(p, fig)
+    ok = isfile(p) && filesize(p) > 0
+    rm(p; force=true)
+    return ok
+end
 
 @testset "Lattice2DMakieExt" begin
     @testset "extension loads with Makie" begin
