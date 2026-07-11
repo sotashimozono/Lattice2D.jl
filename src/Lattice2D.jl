@@ -118,6 +118,7 @@ include("api/predicates.jl")
 include("api/regions.jl")
 include("utils/iterator.jl")
 include("api/builders.jl")
+include("api/dual.jl")
 include("disorder/dilution.jl")
 
 # ---- Plots-extension stubs ------------------------------------------
@@ -227,6 +228,9 @@ export coordination_number, mean_coordination, bond_distances, shells
 
 # Edge / bulk region API (`src/api/regions.jl`)
 export edge_sites, bulk_sites, edge_bonds
+
+# Dual-lattice construction (`src/api/dual.jl`)
+export dual_lattice, dual_topology
 
 # Re-exports from LatticeCore so `using Lattice2D` is self-sufficient
 export AbstractLattice
