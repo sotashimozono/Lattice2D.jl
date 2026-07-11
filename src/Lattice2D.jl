@@ -115,7 +115,6 @@ include("core/cache.jl")
 include("core/element_api.jl")
 include("core/constructor.jl")
 include("api/predicates.jl")
-include("api/regions.jl")
 include("utils/iterator.jl")
 include("api/builders.jl")
 include("api/dual.jl")
@@ -277,7 +276,8 @@ export square, triangular, honeycomb, kagome, lieb, union_jack, dice, shastry_su
 # Structural predicates (`src/api/predicates.jl`)
 export coordination_number, mean_coordination, bond_distances, shells
 
-# Edge / bulk region API (`src/api/regions.jl`)
+# Edge / bulk region API — generic over AbstractLattice, hosted in LatticeCore;
+# re-exported so `using Lattice2D` keeps exposing it.
 export edge_sites, bulk_sites, edge_bonds
 
 # Dual-lattice construction (`src/api/dual.jl`)
