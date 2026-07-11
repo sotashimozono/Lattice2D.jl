@@ -215,8 +215,11 @@ export num_bonds, num_plaquettes, bond_type
 export plot_bonds
 export plot_state
 export brillouin_zone, high_symmetry_points, plot_brillouin_zone
-# Makie backend — generic over AbstractLattice, hosted in LatticeCore; re-exported.
-export makie_lattice, makie_state, makie_structure_factor
+# Backend-dispatched visualization — hosted in LatticeCore; re-exported so
+# `using Lattice2D` exposes `plot_lattice(lat; backend = :plots | :makie)` and
+# the Makie-only extras.
+export plot_lattice, AbstractPlotBackend, PlotsBackend, MakieBackend, default_plot_backend
+export makie_state, makie_structure_factor
 export DilutedLattice, dilute_sites, dilute_bonds
 export AVAILABLE_LATTICES
 export Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
