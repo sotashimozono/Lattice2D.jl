@@ -11,7 +11,7 @@ using StaticArrays
 # vanish off `k_target` (mod reciprocal-lattice vectors) and equal
 # `Nsites` at `k_target`, so `S(k_target) = Nsites`.
 function _plane_wave_state(lat, k_target)
-    [cis(dot(k_target, position(lat, i))) for i in 1:num_sites(lat)]
+    return [cis(dot(k_target, position(lat, i))) for i in 1:num_sites(lat)]
 end
 
 @testset "structure_factor FFT path (Lattice2DFFTWExt)" begin

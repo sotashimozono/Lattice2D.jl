@@ -16,7 +16,7 @@ end
 function Base.show(io::IO, lat::Lattice{Topo}) where {Topo}
     bc_summary = join([string(typeof(ax).name.name) for ax in lat.boundary.axes], ", ")
     bipartite_str = is_bipartite(lat) ? "bipartite" : "not bipartite"
-    print(
+    return print(
         io,
         "\n" *
         "Lattice Shape: $(Topo)\n" *

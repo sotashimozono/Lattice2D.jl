@@ -352,7 +352,7 @@ function Base.show(io::IO, lat::DilutedLattice)
     Nbase = num_sites(lat.base)
     Nact = num_sites(lat)
     nkill = length(lat.killed_bonds)
-    print(
+    return print(
         io,
         "DilutedLattice over $(typeof(lat.base).name.name): " *
         "$(Nact) / $(Nbase) sites active, $(nkill) explicit bond removals",
