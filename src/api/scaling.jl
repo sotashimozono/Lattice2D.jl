@@ -17,12 +17,16 @@ _size_independent_layout(::SublatticeLayout) = true
 _size_independent_layout(::AbstractSiteLayout) = false
 
 function _rebuild(lat::Lattice{Topo,T}, Lx::Int, Ly::Int) where {Topo,T}
-    _size_independent_layout(lat.layout) || throw(ArgumentError(
-        "cannot rescale a lattice whose layout carries per-site data " *
-        "($(typeof(lat.layout))): it is sized to the current $(lat.Lx)×$(lat.Ly) lattice. " *
-        "Rebuild the layout for the target size and construct the lattice directly."
-    ))
-    return Lattice{Topo,T}(Lx, Ly, lat.boundary, lat.indexing, lat.layout, Ref{Any}(nothing))
+    _size_independent_layout(lat.layout) || throw(
+        ArgumentError(
+            "cannot rescale a lattice whose layout carries per-site data " *
+            "($(typeof(lat.layout))): it is sized to the current $(lat.Lx)×$(lat.Ly) lattice. " *
+            "Rebuild the layout for the target size and construct the lattice directly.",
+        ),
+    )
+    return Lattice{Topo,T}(
+        Lx, Ly, lat.boundary, lat.indexing, lat.layout, Ref{Any}(nothing)
+    )
 end
 
 """
@@ -61,9 +65,11 @@ function LatticeCore.rescale(lat::Lattice, k::Integer=1)
         return _rebuild(lat, lat.Lx * m, lat.Ly * m)
     end
     m = f^(-k)
-    (lat.Lx % m == 0 && lat.Ly % m == 0) || throw(ArgumentError(
-        "cannot step down $(-k) level(s): $(lat.Lx)×$(lat.Ly) is not divisible by $m"
-    ))
+    (lat.Lx % m == 0 && lat.Ly % m == 0) || throw(
+        ArgumentError(
+            "cannot step down $(-k) level(s): $(lat.Lx)×$(lat.Ly) is not divisible by $m",
+        ),
+    )
     return _rebuild(lat, lat.Lx ÷ m, lat.Ly ÷ m)
 end
 
@@ -92,12 +98,15 @@ true
 ```
 """
 function LatticeCore.cell_partition(lat::Lattice, k::Integer=1)
-    k >= 1 || throw(ArgumentError("cell_partition needs k ≥ 1 (a coarser lattice); got k = $k"))
+    k >= 1 ||
+        throw(ArgumentError("cell_partition needs k ≥ 1 (a coarser lattice); got k = $k"))
     f = LatticeCore.scaling_rule(lat).factor
     m = f^k
-    (lat.Lx % m == 0 && lat.Ly % m == 0) || throw(ArgumentError(
-        "cannot coarsen by $k level(s): $(lat.Lx)×$(lat.Ly) is not divisible by $m"
-    ))
+    (lat.Lx % m == 0 && lat.Ly % m == 0) || throw(
+        ArgumentError(
+            "cannot coarsen by $k level(s): $(lat.Lx)×$(lat.Ly) is not divisible by $m"
+        ),
+    )
     nsub = num_sublattices(lat)
     cdims = (lat.Lx ÷ m, lat.Ly ÷ m)
     groups = [Int[] for _ in 1:prod(cdims)]

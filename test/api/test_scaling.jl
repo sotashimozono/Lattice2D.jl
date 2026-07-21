@@ -79,10 +79,12 @@ end
     # how sites are numbered — only the labels may permute.
     ref = nothing
     for idx in (RowMajor(), ColMajor(), Snake())
-        lat = build_lattice(Square, 4, 4; indexing = idx)
+        lat = build_lattice(Square, 4, 4; indexing=idx)
         groups = cell_partition(lat, 1)
         # convert each group to the set of lattice coordinates it covers
-        as_coords = Set(Set(lattice_coord(idx, (4, 4), 1, i).cell for i in g) for g in groups)
+        as_coords = Set(
+            Set(lattice_coord(idx, (4, 4), 1, i).cell for i in g) for g in groups
+        )
         ref === nothing ? (ref = as_coords) : (@test as_coords == ref)
     end
 end
