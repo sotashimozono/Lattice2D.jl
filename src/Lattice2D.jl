@@ -119,6 +119,7 @@ include("utils/iterator.jl")
 include("api/builders.jl")
 include("api/dual.jl")
 include("api/symmetry.jl")
+include("api/scaling.jl")
 include("disorder/dilution.jl")
 
 # ---- Plots-extension stubs ------------------------------------------
