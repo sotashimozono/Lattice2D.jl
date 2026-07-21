@@ -15,7 +15,7 @@ using Test
 # position-matched comparison on a cell whose sublattices sit at generic points.
 
 const TOL = 1e-9
-key(p) = Tuple(round.(p; digits = 9))
+key(p) = Tuple(round.(p; digits=9))
 
 """
 Relabelling from `a`'s sublattice indices to `b`'s, matched by position.
@@ -37,15 +37,22 @@ function position_map(a::UnitCell, b::UnitCell)
     return m
 end
 
-conn_set(uc::UnitCell, relabel = nothing) = Set(
-    (relabel === nothing ? c.src_sub : relabel[c.src_sub],
-     relabel === nothing ? c.dst_sub : relabel[c.dst_sub],
-     c.dx, c.dy, c.type) for c in uc.connections
-)
+function conn_set(uc::UnitCell, relabel=nothing)
+    return Set(
+        (
+            relabel === nothing ? c.src_sub : relabel[c.src_sub],
+            relabel === nothing ? c.dst_sub : relabel[c.dst_sub],
+            c.dx,
+            c.dy,
+            c.type,
+        ) for c in uc.connections
+    )
+end
 
 "do two unit cells describe the same lattice?"
 function same_lattice(a::UnitCell, b::UnitCell)
-    all(isapprox.(reduce(vcat, a.basis), reduce(vcat, b.basis); atol = TOL)) || return false, "basis"
+    all(isapprox.(reduce(vcat, a.basis), reduce(vcat, b.basis); atol=TOL)) ||
+        return false, "basis"
     m = position_map(a, b)
     m === nothing && return false, "sublattice positions"
     conn_set(a, m) == conn_set(b) || return false, "connections"
@@ -57,8 +64,10 @@ Perturb a unit cell: shift every sublattice by a distinct generic vector, so tha
 symmetry can make a wrong index convention look right.
 """
 function perturb(uc::UnitCell{2,T}, seed) where {T}
-    pos = [p .+ [0.017 * (seed + 3k), 0.023 * (seed + 5k)] for (k, p) in
-           enumerate(uc.sublattice_positions)]
+    pos = [
+        p .+ [0.017 * (seed + 3k), 0.023 * (seed + 5k)] for
+        (k, p) in enumerate(uc.sublattice_positions)
+    ]
     return UnitCell{2,T}(uc.basis, pos, uc.connections, uc.plaquettes)
 end
 
@@ -105,17 +114,21 @@ end
     uc = get_unit_cell(Square)
     good = blocking(uc, 4)
     bad = UnitCell{2,Float64}(
-        good.basis, good.sublattice_positions,
-        [Connection(c.src_sub, c.dst_sub, c.dx + (i == 1), c.dy, c.type)
-         for (i, c) in enumerate(good.connections)],
+        good.basis,
+        good.sublattice_positions,
+        [
+            Connection(c.src_sub, c.dst_sub, c.dx + (i == 1), c.dy, c.type) for
+            (i, c) in enumerate(good.connections)
+        ],
         good.plaquettes,
     )
     @test !first(same_lattice(blocking(blocking(uc, 2), 2), bad))
     # and a shifted sublattice must be caught too
     shifted = UnitCell{2,Float64}(
-        good.basis, [k == 1 ? p .+ [0.5, 0.0] : p for (k, p) in
-                     enumerate(good.sublattice_positions)],
-        good.connections, good.plaquettes,
+        good.basis,
+        [k == 1 ? p .+ [0.5, 0.0] : p for (k, p) in enumerate(good.sublattice_positions)],
+        good.connections,
+        good.plaquettes,
     )
     @test !first(same_lattice(blocking(blocking(uc, 2), 2), shifted))
 end
