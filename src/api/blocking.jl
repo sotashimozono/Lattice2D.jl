@@ -18,8 +18,9 @@
 Index of the new sublattice carrying old sublattice `sub` at block offset `o` (a `(dx, dy)` in
 `0:f-1`). Ordering is old-sublattice-fastest, then `ox`, then `oy`, so `sub = 1, o = (0,0)` is 1.
 """
-block_sublattice(nsub::Int, f::Int, sub::Int, o::NTuple{2,Int}) =
-    sub + nsub * (o[1] + f * o[2])
+function block_sublattice(nsub::Int, f::Int, sub::Int, o::NTuple{2,Int})
+    return sub + nsub * (o[1] + f * o[2])
+end
 
 """
     blocking(uc::UnitCell{2,T}, f::Integer = 2) -> UnitCell{2,T}
