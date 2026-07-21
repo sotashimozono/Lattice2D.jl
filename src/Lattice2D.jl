@@ -120,6 +120,7 @@ include("api/builders.jl")
 include("api/dual.jl")
 include("api/symmetry.jl")
 include("api/scaling.jl")
+include("api/blocking.jl")
 include("disorder/dilution.jl")
 
 # ---- Plots-extension stubs ------------------------------------------
@@ -238,6 +239,7 @@ export edge_sites, bulk_sites, edge_bonds
 
 # Dual-lattice construction (`src/api/dual.jl`)
 export dual_lattice, dual_topology
+export blocking, block_sublattice
 
 # Point-group symmetry & site orbits (`src/api/symmetry.jl`)
 export SymmetryOperation, symmetry_operations, symmetry_group_order
