@@ -103,7 +103,19 @@ import LatticeCore:
     Plaquette,
     plaquettes,
     neighbor_plaquettes,
-    plaquette_center
+    plaquette_center,
+    InfiniteSize,
+    CellSite,
+    CellBond,
+    translation_vectors,
+    num_basis_sites,
+    basis_position,
+    cell_bonds,
+    site_orbits,
+    bond_orbits,
+    cell_position,
+    incident_cell_bonds,
+    neighbors_at
 
 # ---- Lattice2D source files -----------------------------------------
 
@@ -114,6 +126,7 @@ include("core/lattice.jl")
 include("core/cache.jl")
 include("core/element_api.jl")
 include("core/constructor.jl")
+include("core/translation_cell.jl")
 include("api/predicates.jl")
 include("utils/iterator.jl")
 include("api/builders.jl")
@@ -276,5 +289,12 @@ export num_elements, elements, element_position, element_positions
 export element_neighbors, incident
 export PlaquetteRule, Plaquette, plaquettes, neighbor_plaquettes, plaquette_center
 export materialize, require_finite
+
+# ---- Translation-cell (unit-cell motif) layer ----
+export InfiniteLattice
+export CellSite, CellBond
+export translation_vectors, num_basis_sites, basis_position, cell_bonds
+export site_orbits, bond_orbits
+export cell_position, incident_cell_bonds, neighbors_at
 
 end # module Lattice2D
