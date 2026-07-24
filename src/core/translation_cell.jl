@@ -59,6 +59,16 @@ end
 
 LatticeCore.cell_bonds(::Lattice{Topo}) where {Topo} = _cell_bonds_from_unitcell(Topo)
 
+# The unit cell's plaquette rules are the plaquette-orbit representatives.
+# `element_orbits(lat, PlaquetteCenter())` and `element_orbit_position`
+# (both generic in LatticeCore) then work off these, completing the
+# site / bond / plaquette centring on the fundamental domain.
+function _plaquette_orbits(::Type{Topo}) where {Topo<:AbstractTopology{2}}
+    return Tuple(get_unit_cell(Topo).plaquettes)
+end
+
+LatticeCore.plaquette_orbits(::Lattice{Topo}) where {Topo} = _plaquette_orbits(Topo)
+
 # ---- InfiniteLattice: the thermodynamic-limit object ----------------
 
 """
@@ -130,6 +140,8 @@ end
 function LatticeCore.cell_bonds(::InfiniteLattice{Topo}) where {Topo}
     return _cell_bonds_from_unitcell(Topo)
 end
+
+LatticeCore.plaquette_orbits(::InfiniteLattice{Topo}) where {Topo} = _plaquette_orbits(Topo)
 
 # ---- Size / traits --------------------------------------------------
 
