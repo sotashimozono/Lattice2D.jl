@@ -7,12 +7,14 @@ const _TC_TOPOS = (
     Square, Triangular, Honeycomb, Kagome, Lieb, ShastrySutherland, Dice, UnionJack
 )
 
-# Real-space displacement vectors from a finite interior site of
-# sublattice `b`, via the *independently implemented* `neighbor_bonds`
-# path. A 7×7 OBC sample guarantees a full-coordination interior site
-# for every sublattice (motif offsets span at most ±1 cell), and OBC
-# means the stored displacement is unwrapped.
-function _finite_neighbor_vecs(Topo, b)
+# (displacement vector, bond-type symbol) pairs from a finite interior
+# site of sublattice `b`, via the *independently implemented*
+# `neighbor_bonds` path (which derives its `:type_N` tag through the
+# separate `_conn_type_symbols` cache, not `_cell_bonds_from_unitcell`).
+# A 7×7 OBC sample guarantees a full-coordination interior site for
+# every sublattice (motif offsets span at most ±1 cell), and OBC means
+# the stored displacement is unwrapped.
+function _finite_neighbor_pairs(Topo, b)
     lat = build_lattice(Topo, 7, 7; boundary=OpenAxis())
     best_i, best_c = 0, -1
     for i in 1:num_sites(lat)
@@ -20,21 +22,26 @@ function _finite_neighbor_vecs(Topo, b)
         c = length(neighbor_bonds(lat, i))
         c > best_c && ((best_i, best_c) = (i, c))
     end
-    vecs = Set(round.(nb.vector; digits=6) for nb in neighbor_bonds(lat, best_i))
-    return vecs, best_c
+    pairs = Set(
+        (round.(nb.vector; digits=6), nb.type) for nb in neighbor_bonds(lat, best_i)
+    )
+    return pairs, best_c
 end
 
-# Same displacement set, but reconstructed purely from the motif via the
-# lazy accessors on the infinite lattice.
-function _motif_neighbor_vecs(Topo, b)
+# Same (vector, type) set, reconstructed purely from the motif via the
+# lazy accessors on the infinite lattice. Comparing types here — not
+# just displacements — catches a mangled `:type_N` mapping that the
+# geometry alone would miss.
+function _motif_neighbor_pairs(Topo, b)
     inf = InfiniteLattice(Topo)
     p_b = basis_position(inf, b)
     ib = incident_cell_bonds(inf, CellSite((0, 0), b))
-    vecs = Set(
-        round.(cell_position(inf, CellSite(Tuple(cb.offset), cb.dst)) .- p_b; digits=6) for
-        cb in ib
+    return Set(
+        (
+            round.(cell_position(inf, CellSite(Tuple(cb.offset), cb.dst)) .- p_b; digits=6),
+            cb.type,
+        ) for cb in ib
     )
-    return vecs
 end
 
 @testset "finite Lattice motif interface — all topologies" begin
@@ -56,17 +63,36 @@ end
     end
 end
 
-@testset "motif neighbours match the finite neighbor_bonds path" begin
+@testset "motif neighbours (vector + type) match the finite neighbor_bonds path" begin
     # The strong independent check: the coordination shell reconstructed
-    # from the unit-cell motif must equal the one the established finite
-    # neighbour code produces for an interior site.
+    # from the unit-cell motif — displacement AND bond type — must equal
+    # the one the established finite neighbour code produces for an
+    # interior site.
     for Topo in _TC_TOPOS
         for b in 1:num_sublattices(build_lattice(Topo, 2, 2))
-            finite_vecs, finite_c = _finite_neighbor_vecs(Topo, b)
-            motif_vecs = _motif_neighbor_vecs(Topo, b)
-            @test length(motif_vecs) == finite_c
-            @test motif_vecs == finite_vecs
+            finite_pairs, finite_c = _finite_neighbor_pairs(Topo, b)
+            motif_pairs = _motif_neighbor_pairs(Topo, b)
+            @test length(motif_pairs) == finite_c
+            @test motif_pairs == finite_pairs
         end
+    end
+end
+
+@testset "cell_bonds reproduces the raw UnitCell Connections" begin
+    # Independent of `_cell_bonds_from_unitcell`: rebuild the expected
+    # motif directly from each topology's raw `Connection` fields and
+    # diff. Catches a src/dst swap, a wrong offset, or a mangled type
+    # index that the geometry-only neighbour check could absorb.
+    for Topo in _TC_TOPOS
+        conns = get_unit_cell(Topo).connections
+        expected = Set(
+            (c.src_sub, c.dst_sub, (c.dx, c.dy), Symbol("type_", c.type)) for c in conns
+        )
+        got = Set(
+            (cb.src, cb.dst, Tuple(cb.offset), cb.type) for
+            cb in cell_bonds(InfiniteLattice(Topo))
+        )
+        @test got == expected
     end
 end
 
@@ -80,13 +106,19 @@ end
         @test_throws DomainError num_sites(inf)
         @test_throws DomainError position(inf, 1)
         @test_throws DomainError neighbors(inf, 1)
+        # No linear index ⇒ sublattice(i) must throw, not return 1.
+        @test_throws DomainError sublattice(inf, 1)
+        # Out-of-range basis fails loudly.
+        @test_throws ArgumentError basis_position(inf, num_basis_sites(inf) + 1)
 
         fin = build_lattice(Topo, 3, 3)
         @test collect(site_orbits(inf)) == collect(site_orbits(fin))
         @test translation_vectors(inf) == basis_vectors(fin)
-        # Same motif as the finite lattice (src, dst, offset, type).
-        key(cb) = (cb.src, cb.dst, cb.offset, cb.type)
-        @test Set(key.(cell_bonds(inf))) == Set(key.(cell_bonds(fin)))
+
+        # `is_bipartite` is topology-intrinsic: the infinite lattice must
+        # agree with a finite (PBC, even) sample — an independent path
+        # (OBC 6×6 BFS vs PBC 4×4 BFS).
+        @test is_bipartite(inf) == is_bipartite(build_lattice(Topo, 4, 4))
     end
 end
 
@@ -103,6 +135,29 @@ end
     @test site_type(inf2, 1) == XYSite()
     fin2 = materialize(inf2; dims=(2, 2))
     @test site_type(fin2, 1) == XYSite()
+end
+
+@testset "materialize — non-square dims, every topology" begin
+    # Non-square dims catch an Lx/Ly transposition in materialize; the
+    # loop covers the topologies the Honeycomb/Square cases above miss.
+    for Topo in _TC_TOPOS
+        nsub = num_basis_sites(InfiniteLattice(Topo))
+        fin = materialize(InfiniteLattice(Topo); dims=(3, 5))
+        @test fin isa Lattice
+        @test num_sites(fin) == 3 * 5 * nsub
+        @test periodicity(fin) == Periodic()
+    end
+end
+
+@testset "lazy accessors also work on the finite Lattice" begin
+    # The orbit accessors are generic over AbstractLattice, so they must
+    # dispatch on a finite `Lattice` too (not only InfiniteLattice).
+    lat = build_lattice(Square, 4, 4)
+    nb = neighbors_at(lat, CellSite((2, 2), 1))
+    @test length(nb) == 4
+    @test Set(n.cell .- SVector(2, 2) for n in nb) ==
+        Set(SVector.([(1, 0), (-1, 0), (0, 1), (0, -1)]))
+    @test length(collect(incident_cell_bonds(lat, CellSite((2, 2), 1)))) == 4
 end
 
 @testset "InfiniteLattice — lazy access is translation invariant" begin

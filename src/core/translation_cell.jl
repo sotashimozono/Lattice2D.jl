@@ -23,11 +23,24 @@
 # `build_lattice` tags emitted bonds `:type_N` from the integer
 # `Connection.type`; we mirror that convention here so a motif bond and
 # its instantiated `Bond` carry the same type symbol.
-@inline function _cell_bonds_from_unitcell(::Type{Topo}) where {Topo<:AbstractTopology{2}}
+#
+# Cached `Topo -> Tuple{CellBond{2}...}` and reused by every
+# `cell_bonds` / `incident_cell_bonds` / `neighbors_at` call, mirroring
+# the `_SUB_OFFSETS_CACHE` / `_CONN_TYPE_SYMBOLS` discipline in
+# `lattice.jl` — these accessors are meant for hot tensor-network build
+# loops. An immutable tuple is returned so the shared value cannot be
+# mutated by a caller.
+const _CELL_BONDS_CACHE = IdDict{DataType,Any}()
+
+function _cell_bonds_from_unitcell(::Type{Topo}) where {Topo<:AbstractTopology{2}}
+    cached = get(_CELL_BONDS_CACHE, Topo, nothing)
+    cached === nothing || return cached::Tuple{Vararg{CellBond{2}}}
     conns = get_unit_cell(Topo).connections
-    return [
+    val = Tuple(
         CellBond(c.src_sub, c.dst_sub, (c.dx, c.dy), Symbol("type_", c.type)) for c in conns
-    ]
+    )
+    _CELL_BONDS_CACHE[Topo] = val
+    return val
 end
 
 # ---- Finite Lattice: motif methods ----------------------------------
@@ -49,7 +62,7 @@ LatticeCore.cell_bonds(::Lattice{Topo}) where {Topo} = _cell_bonds_from_unitcell
 # ---- InfiniteLattice: the thermodynamic-limit object ----------------
 
 """
-    InfiniteLattice{Topo, T, L}(; T = Float64, layout = UniformLayout(IsingSite()))
+    InfiniteLattice{Topo, T, L}(; layout = UniformLayout(IsingSite()))
 
 A truly infinite 2D lattice of topology `Topo` — the
 thermodynamic-limit counterpart of the finite [`Lattice`](@ref) under
@@ -73,6 +86,9 @@ fin = materialize(inf; dims = (8, 8))   # 8×8 PBC honeycomb Lattice
 
 but the lazy accessors above never require it.
 
+Positions use `Float64`, matching the finite [`Lattice`](@ref) produced
+by [`build_lattice`](@ref).
+
 # Example
 ```julia
 inf = InfiniteLattice(Kagome)
@@ -87,11 +103,9 @@ struct InfiniteLattice{Topo<:AbstractTopology{2},T<:AbstractFloat,L<:AbstractSit
 end
 
 function InfiniteLattice(
-    ::Type{Topo};
-    T::Type{<:AbstractFloat}=Float64,
-    layout::AbstractSiteLayout=UniformLayout(IsingSite()),
+    ::Type{Topo}; layout::AbstractSiteLayout=UniformLayout(IsingSite())
 ) where {Topo<:AbstractTopology{2}}
-    return InfiniteLattice{Topo,T,typeof(layout)}(layout)
+    return InfiniteLattice{Topo,Float64,typeof(layout)}(layout)
 end
 
 # ---- Motif interface (same geometry source as the finite Lattice) ---
@@ -130,6 +144,31 @@ end
 
 # Conceptually the thermodynamic limit of full periodic boundaries.
 LatticeCore.boundary(::InfiniteLattice) = LatticeBoundary((PeriodicAxis(), PeriodicAxis()))
+
+# `is_bipartite` is a topology-intrinsic property, so the infinite
+# lattice must agree with the finite one rather than fall through to the
+# generic `false` default. Reuse the finite BFS 2-colouring on an open
+# 6×6 patch: every motif offset spans at most ±1 cell, so the patch
+# contains the shortest cycle, and OBC avoids the boundary-wrap odd
+# cycles that a periodic sample could introduce — matching the infinite
+# graph.
+function LatticeCore.is_bipartite(::InfiniteLattice{Topo}) where {Topo}
+    return is_bipartite(build_lattice(Topo, 6, 6; boundary=OpenAxis()))
+end
+
+# There is no linear site index, so `sublattice(inf, i)` is undefined.
+# Throw the same way as `position` / `neighbors` / `num_sites` rather
+# than return the misleading generic default of `1`; a site's sublattice
+# is the `.basis` field of its `CellSite`.
+function LatticeCore.sublattice(::InfiniteLattice, ::Int)
+    return throw(
+        DomainError(
+            InfiniteSize(),
+            "InfiniteLattice has no linear site index; a site's sublattice is the " *
+            "`.basis` field of its `CellSite`",
+        ),
+    )
+end
 
 # ---- Linear-index API is undefined for an infinite lattice ----------
 
