@@ -113,6 +113,9 @@ import LatticeCore:
     cell_bonds,
     site_orbits,
     bond_orbits,
+    plaquette_orbits,
+    element_orbits,
+    element_orbit_position,
     cell_position,
     incident_cell_bonds,
     neighbors_at
@@ -294,7 +297,8 @@ export materialize, require_finite
 export InfiniteLattice
 export CellSite, CellBond
 export translation_vectors, num_basis_sites, basis_position, cell_bonds
-export site_orbits, bond_orbits
+export site_orbits, bond_orbits, plaquette_orbits
+export element_orbits, element_orbit_position
 export cell_position, incident_cell_bonds, neighbors_at
 
 end # module Lattice2D
