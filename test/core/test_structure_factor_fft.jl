@@ -129,7 +129,7 @@ end
             @test argmax(S) == target_idx
             @test S[target_idx] ≈ Float64(N) rtol = 1e-10
             # All other k-points must vanish to FP noise.
-            S_off = copy(S);
+            S_off = copy(S)
             S_off[target_idx] = 0.0
             @test maximum(S_off) < 1e-9
         end
